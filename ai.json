@@ -1,0 +1,70 @@
+{
+  "$schema": "https://ai-discovery.example/schema/v0.1",
+  "name": "Sunset & Sail Travel",
+  "version": "1.1",
+  "last_updated": "2026-10-02",
+  "description": "Destination Travel Specialist packaging air, hotels, car rentals, and destination tickets into all-inclusive vacation bundles.",
+  "contact": {
+    "email": "quotes@sunsetsailtravel.example",
+    "privacy_email": "privacy@sunsetsailtravel.example",
+    "phone": "+1-555-014-7788"
+  },
+  "capabilities": [
+    {
+      "name": "list_bundles",
+      "type": "read",
+      "description": "Retrieve currently available vacation bundles with pricing tiers and inclusions.",
+      "endpoint": "GET https://api.sunsetsailtravel.example/v1/bundles",
+      "auth": "none (public catalog data)",
+      "sample_response_fields": ["id", "name", "region", "nights", "priceTier", "minPrice", "maxPrice", "currency", "inStock", "includes[]"]
+    },
+    {
+      "name": "get_bundle",
+      "description": "Retrieve full details (itinerary, inclusions, price validity) for one bundle by ID.",
+      "path_template": "GET https://api.sunsetsailtravel.example/v1/bundles/{bundleId}",
+      "auth": "none",
+      "sample_payload": { "bundle_id": "caribbean-bundle" }
+    },
+    {
+      "name": "request_quote",
+      "description": "Submit a quote request. A human travel advisor responds within 1 business day. No auto-charging occurs.",
+      "method": "POST",
+      "endpoint": "https://api.sunsetsailtravel.example/v1/quote-requests",
+      "auth": "none (requests triaged by staff)",
+      "required_fields": ["name", "email", "consent"],
+      "optional_fields": ["phone", "departureCity", "partySize", "preferredDates", "budgetTier", "travelerInfo", "notes"],
+      "sample_payload": {
+        "name": "Jane Doe",
+        "email": "jane@example.com",
+        "phone": "+1-555-XXX-XXXX",
+        "departureCity": "Denver (DEN)",
+        "bundle": "caribbean-bundle",
+        "partySize": 2,
+        "preferredDates": "2026-12-15",
+        "budgetTier": "premium",
+        "travelerInfo": "John Doe (01/15/1985), Jane Doe (03/22/1987)",
+        "notes": "Anniversary trip, prefer balcony cabin",
+        "consent": true
+      },
+      "response": { "status": "received", "reply_within": "1 business day", "data_retention_days": 90 }
+    }
+  ],
+  "machine_readable_assets": {
+    "llms_txt": "https://www.sunsetsailtravel.example/llms.txt",
+    "media_kit": "https://www.sunsetsailtravel.example/media-kit.json",
+    "schema_org": "embedded JSON-LD (TravelAgency, TouristTrip, Offer, FAQPage) in index.html",
+    "robots_txt": "https://www.sunsetsailtravel.example/robots.txt"
+  },
+  "data_handling": {
+    "quote_retention_days": 90,
+    "deletion_request_email": "privacy@sunsetsailtravel.example",
+    "deletion_response_time": "5 business days",
+    "automated_booking": false,
+    "human_review_required": true
+  },
+  "transactional_status": {
+    "checkout": "human_in_the_loop",
+    "payment_methods": [],
+    "note": "Bookings are finalized by a licensed travel advisor; AI agents should direct users to the quote request endpoint."
+  }
+}

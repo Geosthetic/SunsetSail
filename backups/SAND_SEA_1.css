@@ -1,0 +1,434 @@
+/* ============================================================
+   Sunset & Sail Travel — style.css
+   Palette: Sand & Sea palette theme
+   Optimized for: Firefox (primary) · Chrome/Edge · Safari · all
+   ============================================================ */
+:root {
+  --ocean-900: #e76f51;
+  --ocean-700: #134074;
+  --ocean-500: #1b56a0;
+  --coral-500: #f4a261;
+  --coral-600: #e8543f;
+  --sand-100: #faf6f0;
+  --sand-200: #f0e9dd;
+  --ink: #1c2430;
+  --radius: 12px;
+  --shadow: 0 4px 18px rgba(11, 37, 69, 0.10);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  line-height: 1.6;
+  background: var(--sand-100);
+  /* Apple — keep this (macOS/iOS rendering), harmless elsewhere */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Smooth anchor scrolling: FF uses html-level, but body covers legacy */
+  scroll-behavior: smooth;
+}
+
+html { scroll-behavior: smooth; }
+
+/* Sticky-header fix: anchors land BELOW the header in Firefox & friends */
+:target,
+[id] {
+  scroll-margin-top: 4.5rem;
+}
+
+img { max-width: 100%; display: block; }
+
+.container { width: min(1080px, 92%); margin-inline: auto; }
+
+/* ---------- Selection (FF + standard; -webkit for Safari/Chrome) ---------- */
+::selection { background: var(--coral-500); color: #fff; }
+::-moz-selection { background: var(--coral-500); color: #fff; }
+
+/* ---------- Header ---------- */
+.site-header {
+  background: var(--ocean-900);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  /* FF-only scrollbar gutter shift prevention on scroll-locking pages */
+  scrollbar-gutter: stable;
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 0.8rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.brand { color: #fff; font-weight: 700; font-size: 1.15rem; text-decoration: none; }
+nav { display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap; }
+nav a { color: #dce6f5; text-decoration: none; font-size: 0.95rem; }
+nav a:hover { color: #fff; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-block;
+  padding: 0.55rem 1.3rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-primary { background: var(--coral-500); color: #fff; }
+.btn-primary:hover { background: var(--coral-600); }
+.btn-lg { font-size: 1.05rem; padding: 0.75rem 1.6rem; }
+.btn-secondary { background:#ccd5ae; color: #000; font-size: 0.9rem; }
+.btn-secondary:hover { background: var(--coral-500); }
+
+/* ---------- Keyboard focus (Firefox :focus-visible + fallback) ---------- */
+.btn:focus,
+a:focus {
+  outline: 2px solid var(--coral-500);
+  outline-offset: 2px;
+}
+.btn:focus:not(:focus-visible),
+a:focus:not(:focus-visible) { outline: none; } /* drop ring for mouse users */
+.btn:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--coral-500);
+  outline-offset: 2px;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  background:#ccd5ae; /* flat fallback pre-gradient paint */
+  background: linear-gradient(160deg, var(--ocean-900) 0%, var(--coral-500) 100%);
+  color: #fff;
+  text-align: center;
+  padding: 5rem 0 4rem;
+}
+.hero h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); max-width: 18ch; margin-inline: auto; }
+.hero .lede { max-width: 60ch; margin: 1rem auto 1.6rem; opacity: 0.92; }
+.microcopy { font-size: 0.8rem; margin-top: 0.8rem; opacity: 0.7; }
+
+/* ---------- Sections ---------- */
+.section { padding: 3.5rem 0; }
+.section-alt { background: var(--sand-200); }
+.section h2 {
+  color: var(--ocean-900);
+  font-size: 1.7rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* ---------- Includes grid ---------- */
+.includes-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  padding: 0;
+}
+.includes-grid li {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  box-shadow: 0 2px 8px rgba(11, 37, 69, 0.08);
+  font-size: 0.95rem;
+}
+
+/* ---------- Bundles ---------- */
+.bundle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 1.4rem;
+}
+.bundle-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 6px 22px rgba(11, 37, 69, 0.10);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.bundle-card h3 { color: var(--ocean-900); font-size: 1.15rem; }
+.bundle-card .price span { color: var(--coral-600); font-size: 1.35rem; font-weight: 700; }
+.bundle-includes { padding-left: 1.1rem; font-size: 0.88rem; }
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.badge-limited { background: #ffe3de; color: var(--coral-600); }
+
+/* ---------- Process ---------- */
+.process-list { padding-left: 1.3rem; max-width: 640px; margin-inline: auto; }
+.process-list li { margin-bottom: 0.8rem; }
+
+/* ---- About section ---- */
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  gap: var(--space-lg, 2rem);
+  align-items: start;
+}
+
+.photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  aspect-ratio: 4 / 5;
+  border-radius: 12px;
+  background: #e76f51;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.photo-placeholder span { font-size: 3rem; }
+
+.about-name strong {
+  font-size: 1.25rem;
+  color: #e76f51;
+}
+
+.about-title {
+  color: #f4a261;
+  font-weight: 600;
+}
+
+.about-credentials {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0;
+}
+
+.about-credentials li {
+  padding: 0.35rem 0;
+}
+
+@media (max-width: 700px) {
+  .about-grid { grid-template-columns: 1fr; }
+  .photo-placeholder { max-width: 280px; }
+}
+
+/* ---------- FAQ (native <details> — FF + WebKit marker reset) ---------- */
+details {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 0.9rem 1.2rem;
+  margin-bottom: 0.7rem;
+  max-width: 760px;
+  margin-inline: auto;
+}
+details summary {
+  font-weight: 600;
+  cursor: pointer;
+  color:var(--ocean-900);
+  /* Removes the default disclosure triangle everywhere */
+  list-style: none;
+}
+details summary::-webkit-details-marker { display: none; } /* Safari/Chrome */
+details summary::-moz-list-bullet { list-style-type: none; } /* Firefox */
+details summary::marker { content: ""; } /* standard, modern FF */
+details[open] summary { margin-bottom: 0.5rem; }
+
+/* ---------- Form ---------- */
+#quoteForm { max-width: 560px; margin-inline: auto; }
+.form-row { margin-bottom: 1rem; }
+label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+input, select, textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #c9d4e3;
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
+}
+/* Firefox paints its own focus ring on inputs — normalize it */
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--coral-500);
+  outline-offset: 1px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--coral-500);
+  outline-offset: 1px;
+  -moz-outline-radius: 8px; /* FF rounds outlines independently of border-radius */
+}
+/* Number spinner cleanup: -moz- for FF, -webkit- for Chrome/Safari */
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* FF gives textarea a resize handle; keep it but cap */
+textarea { resize: vertical; }
+#formStatus { margin-top: 0.8rem; font-weight: 600; color:#ccd5ae; }
+
+/* ---------- Footer ---------- */
+.site-footer {
+  background: var(--ocean-900);
+  color: #b9c8dd;
+  text-align: center;
+  padding: 2.2rem 0;
+  font-size: 0.85rem;
+}
+.site-footer p { margin-bottom: 0.4rem; }
+.site-footer a { color: #dce6f5; }
+.site-footer a:hover { color: #fff; }
+
+@media (max-width: 640px) {
+  nav { width: 100%; justify-content: center; }
+  .hero { padding: 3.5rem 0; }
+}
+
+/* ============================================================
+   PACKING CHECKLIST POPUP
+   ============================================================ */
+.pack-trigger {
+  position: fixed;
+  bottom: 1.2rem;
+  right: 1.2rem;
+  z-index: 60;
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--coral-500);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.pack-trigger:hover { background: var(--coral-600); }
+
+.pack-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 37, 69, 0.45);
+  z-index: 70;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.pack-overlay.show { opacity: 1; }
+
+.pack-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: min(560px, 94vw);
+  z-index: 71;
+  background: #fff;
+  box-shadow: -6px 0 28px rgba(11, 37, 69, 0.25);
+  display: flex;                 /* toolbar rail | main column */
+  transform: translateX(110%);
+  transition: transform 0.35s ease;
+}
+.pack-panel.open { transform: translateX(0); }
+
+.pack-panel[hidden] { display: none !important; }
+
+/* --- Vertical action rail: buttons run parallel to the window edge --- */
+.pack-toolbar {
+  display: flex;
+  flex-direction: column;   /* aligned vertically */
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 1rem 0.6rem;
+  background: var(--ocean-900);
+  flex: 0 0 auto;
+}
+.pack-btn {
+  padding: 0.6rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background:#ccd5ae;
+  color: #000;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  writing-mode: vertical-rl; /* button text reads top→bottom */
+  white-space: nowrap;
+}
+.pack-btn:hover { background: var(--coral-500); }
+
+.pack-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.2rem 1.4rem 2.5rem;
+}
+.pack-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.pack-header h2 { font-size: 1.2rem; color: var(--ocean-900); }
+.pack-close {
+  border: none; background: none; font-size: 1.6rem;
+  cursor: pointer; color:#ccd5ae; line-height: 1;
+}
+.pack-progress { font-size: 0.85rem; font-weight: 600; color: var(--coral-500); margin: 0.4rem 0 1rem; }
+
+.pack-category { margin-bottom: 1.2rem; }
+.pack-category h3 {
+  font-size: 0.95rem;
+  color:#ccd5ae;
+  border-bottom: 2px solid var(--sand-200);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+.pack-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.pack-item input { margin-top: 0.25rem; accent-color: var(--coral-500); width: auto; }
+.pack-item.checked label { text-decoration: line-through; opacity: 0.65; }
+
+@media (max-width: 520px) {
+  .pack-panel { width: 100vw; }
+}
+
+/* ---------- PRINT: only the checklist, with checked boxes visible ---------- */
+@media print {
+  body > *:not(#packPanel) { display: none !important; }
+  #packOverlay { display: none !important; }
+  .pack-panel {
+    position: static;
+    transform: none;
+    width: auto;
+    height: auto;
+    box-shadow: none;
+    display: block;
+    overflow: visible;
+  }
+  .pack-toolbar, .pack-close { display: none !important; }
+  .pack-body { columns: 2; column-gap: 2rem; }  /* fits on one page */
+  .pack-category { break-inside: avoid; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pack-panel { transition: none; }
+  .pack-overlay { transition: none; }
+}
+
+/* Reduced motion — respected by FF and all modern engines */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition-duration: 0.01ms !important; }
+}

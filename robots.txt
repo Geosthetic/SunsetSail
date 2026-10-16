@@ -1,0 +1,48 @@
+# Sunset & Sail Travel — robots.txt
+# AI crawlers explicitly ALLOWED (this site is designed for AI retrieval)
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+# All other crawlers
+User-agent: *
+Allow: /
+
+# Allow AI discovery files
+Allow: /.well-known/
+Allow: /llms.txt
+Allow: /media-kit.json
+Allow: /ai.json
+
+# Block private/admin areas (when created)
+Disallow: /admin/
+Disallow: /.github/
+
+Sitemap: https://www.sunsetsailtravel.example/sitemap.xml

@@ -1,0 +1,180 @@
+{
+  "$schema": "https://sunsetsailtravel.example/schemas/bundles-v1.json",
+  "version": "1.0.0",
+  "lastUpdated": "2026-10-02T14:30:00Z",
+  "currency": "USD",
+  "founder": {
+    "name": "[Your Full Name]",
+    "title": "Destination Travel Specialist | Founder",
+    "bio_short": "[Short bio placeholder: how you got into travel, destinations you know best, and what you love about planning vacations — 2–3 sentences.]",
+    "photoUrl": "https://www.sunsetsailtravel.example/assets/founder-headshot.jpg",
+    "photoAltText": "[Name], Destination Travel Specialist and founder of Sunset & Sail Travel",
+    "credentials": [
+      "Host agency affiliation: [pending]",
+      "CLIA certification: [pending]",
+      "Seller-of-travel registration: CST #[pending]"
+    ]
+  },
+  "contact": {
+    "phone": "+1-555-014-7788",
+    "email": "quotes@sunsetsailtravel.example",
+    "privacyEmail": "privacy@sunsetsailtravel.example",
+    "responseTime": "within 1 business day",
+    "address": {
+      "streetAddress": "400 Harbor Lane, Suite 210",
+      "addressLocality": "Tampa",
+      "addressRegion": "FL",
+      "postalCode": "33602",
+      "addressCountry": "US"
+    }
+  },
+  "dataHandling": {
+    "retentionPeriod": "90 days",
+    "deletionRequest": "email privacy@sunsetsailtravel.example",
+    "purpose": "Process quote requests and follow up on inquiries"
+  },
+  "bundles": [
+    {
+      "id": "caribbean-bundle",
+      "schemaId": "https://www.sunsetsailtravel.example/#caribbean-bundle",
+      "name": "7-Night Western Caribbean Cruise Bundle",
+      "nights": 7,
+      "region": "Caribbean",
+      "touristTypes": ["Couples", "Families", "First-time cruisers"],
+      "summary": "Round-trip flights, 1-night pre-cruise hotel with transfers, 7-night cruise to Cozumel, Grand Cayman & Jamaica, rental car, two shore excursion tickets.",
+      "description": "Round-trip air, pre-cruise hotel, ground transfer, car rental, and destination tickets packaged and priced in one quote.",
+      "itinerary": [
+        { "position": 1, "day": "Day 1", "activity": "Fly to Tampa, overnight hotel near port" },
+        { "position": 2, "day": "Days 2–8", "activity": "7-night cruise — Cozumel, Grand Cayman, Jamaica, private island" },
+        { "position": 3, "day": "Day 9", "activity": "Disembark, rental car for post-cruise exploring, evening flight home" }
+      ],
+      "pricing": {
+        "tier": "economy",
+        "minPrice": 1500.00,
+        "maxPrice": 2500.00,
+        "perPerson": true,
+        "priceLabel": "Economy Tier"
+      },
+      "availability": "inStock",
+      "includes": [
+        "Round-trip air",
+        "Pre-cruise hotel",
+        "Port transfers",
+        "Rental car",
+        "2 shore excursion tickets",
+        "Travel insurance"
+      ],
+      "slug": "western-caribbean-7-night",
+      "seoKeywords": ["caribbean cruise", "western caribbean", "cozumel", "grand cayman", "jamaica", "cruise bundle"]
+    },
+    {
+      "id": "alaska-bundle",
+      "schemaId": "https://www.sunsetsailtravel.example/#alaska-bundle",
+      "name": "10-Night Alaska Glacier Cruise Bundle",
+      "nights": 10,
+      "region": "Alaska",
+      "touristTypes": ["Nature lovers", "Photography enthusiasts", "Families", "Seniors"],
+      "summary": "Flights to Seattle, pre-cruise hotel, glacier itinerary, Seattle city tour, post-cruise attraction day pass.",
+      "description": "Flights to Seattle, pre-cruise hotel, 10-night Alaska glacier itinerary, city tours, and post-cruise day pass tickets.",
+      "itinerary": [
+        { "position": 1, "day": "Day 1", "activity": "Fly to Seattle, pre-cruise hotel" },
+        { "position": 2, "day": "Days 2–11", "activity": "10-night Alaska glacier cruise — glacier viewing, Inside Passage" },
+        { "position": 3, "day": "Day 12", "activity": "Seattle city tour, post-cruise attraction day pass" }
+      ],
+      "pricing": {
+        "tier": "premium",
+        "minPrice": 2500.00,
+        "maxPrice": 4000.00,
+        "perPerson": true,
+        "priceLabel": "Premium Tier"
+      },
+      "availability": "inStock",
+      "includes": [
+        "Round-trip air",
+        "Pre-cruise hotel",
+        "City tour",
+        "Attraction day pass",
+        "Travel insurance"
+      ],
+      "slug": "alaska-glacier-10-night",
+      "seoKeywords": ["alaska cruise", "glacier cruise", "inside passage", "seattle", "alaska bundle"]
+    },
+    {
+      "id": "mediterranean-bundle",
+      "schemaId": "https://www.sunsetsailtravel.example/#mediterranean-bundle",
+      "name": "12-Night Mediterranean Grand Tour Bundle",
+      "nights": 12,
+      "region": "Mediterranean",
+      "touristTypes": ["Luxury travelers", "History buffs", "Culture enthusiasts", "Honeymooners"],
+      "summary": "Flights to Barcelona, 2-night pre-cruise hotel, 12-night cruise, rail pass, skip-the-line tickets.",
+      "description": "Flights to Barcelona, 2-night pre-cruise hotel, 12-night Mediterranean cruise, rail passes, and skip-the-line attraction tickets.",
+      "itinerary": [
+        { "position": 1, "day": "Day 1–2", "activity": "Fly to Barcelona, 2-night pre-cruise hotel" },
+        { "position": 2, "day": "Days 3–14", "activity": "12-night Mediterranean cruise — Barcelona, Marseille, Florence, Rome, Naples" },
+        { "position": 3, "day": "Day 15", "activity": "Disembark, rail pass continues exploration" }
+      ],
+      "pricing": {
+        "tier": "luxury",
+        "minPrice": 4000.00,
+        "maxPrice": 9999.99,
+        "perPerson": true,
+        "priceLabel": "Luxury Tier"
+      },
+      "availability": "limitedAvailability",
+      "includes": [
+        "Round-trip air",
+        "2 hotel nights",
+        "Rail pass",
+        "Attraction tickets",
+        "Travel insurance"
+      ],
+      "slug": "mediterranean-grand-tour-12-night",
+      "seoKeywords": ["mediterranean cruise", "barcelona", "italy", "france", "luxury cruise", "rail pass"]
+    }
+  ],
+  "faq": [
+    {
+      "id": "faq-q1",
+      "question": "Can I book just the cruise and add flights later?",
+      "answer": "Yes. We can lock in a cruise cabin now and add air, hotel, and transfers whenever your plans are firm — though bundling early typically saves 10–20% versus booking separately."
+    },
+    {
+      "id": "faq-q2",
+      "question": "Do you handle flights from smaller cities?",
+      "answer": "Yes. We book from virtually any U.S. or Canadian departure airport, including regional airports, and we can arrange overnight connections to guarantee you arrive a day early."
+    },
+    {
+      "id": "faq-q3",
+      "question": "What happens if my flight is delayed and I miss the ship?",
+      "answer": "Because we bundle air with the cruise line, protected-airfare programs can rebook you to the next port at little or no cost. We also recommend arriving a day early — and we price that hotel night into your bundle."
+    },
+    {
+      "id": "faq-q4",
+      "question": "How far in advance should I book?",
+      "answer": "For cruises, 6–12 months ahead gets the best cabin selection and group rates. Caribbean and Alaska peak-season sailings often sell out of bundled air allocations 4–6 months out."
+    }
+  ],
+  "aiCapabilities": [
+    {
+      "name": "list_bundles",
+      "method": "GET",
+      "endpoint": "/v1/bundles",
+      "auth": "none",
+      "description": "Returns all active vacation bundles"
+    },
+    {
+      "name": "get_bundle",
+      "method": "GET",
+      "endpoint": "/v1/bundles/{id}",
+      "auth": "none",
+      "description": "Returns detailed info for a specific bundle"
+    },
+    {
+      "name": "request_quote",
+      "method": "POST",
+      "endpoint": "/v1/quote-requests",
+      "auth": "none",
+      "description": "Submits a new quote request for review"
+    }
+  ]
+}

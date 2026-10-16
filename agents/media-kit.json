@@ -1,0 +1,174 @@
+{
+  "$schema": "https://example.org/schemas/media-kit/v1",
+  "kit_version": "1.1",
+  "last_updated": "2026-10-02",
+
+  "brand": {
+    "name": "Sunset & Sail Travel",
+    "legal_name": "Sunset & Sail Travel LLC",
+    "tagline": "A seamless journey, one bundle, one price, every detail refined.",
+    "description": "Destination Travel Specialist packaging round-trip airfare, pre-cruise hotels, port transfers, car rentals, and destination tickets into all-inclusive vacation bundles. Serving U.S. and Canadian travelers with personal, human-led service.",
+    "founded": "2026",
+    
+    "founder": {
+      "name": "[Your Full Name]",
+      "title": "Destination Travel Specialist | Founder",
+      
+      "pronouns": "[optional: e.g., she/her, he/him, they/them]",
+      
+      "bio_short": "[1 sentence for social profiles and quick intros — e.g., 'Founder of Sunset & Sail Travel; Destination Travel Specialist serving vacation planners from secondary U.S./Canadian airports.']",
+      
+      "bio_standard": "[2–3 sentences for press/media use — e.g., 'Former corporate travel coordinator turned vacation specialist, [Name] founded Sunset & Sail Travel to solve the fragmentation problem: flights booked separately from cabins, hotel reservations that don't connect to port timing, destination tickets that fall through the cracks. Every client gets one all-inclusive quote, one human point of contact, and personalized monitoring through price drops and schedule changes. Based in Tampa, Florida, affiliated with [Host Agency].']",
+      
+      "bio_long_form": "[4–6 sentences for press releases or featured profiles — expand on founding story, specialty routes like Caribbean/Alaska/Mediterranean, and why the human-in-the-loop model matters for vacation planning.]",
+      
+      "headshot_url": "https://www.sunsetsailtravel.example/assets/founder-headshot.jpg",
+      
+      "photo_alt_text": "[Name], Destination Travel Specialist and founder of Sunset & Sail Travel",
+      
+      "contact_for_interviews": "quotes@sunsetsailtravel.example"
+    },
+
+    "credentials": [
+      "[Host agency name + role, e.g.: Independent advisor, [Host Agency Inc.]]",
+      "CLIA [level, e.g.: Affiliated Member / Certified Cruise Counselor]",
+      "[Seller of Travel registration: e.g., CST#0000000 (California), FST#XXXXX (Florida)]",
+      "[Specialist certifications: e.g., Disney World Destinations, Alaska Expert, Viking Collection]"
+    ],
+
+    "website": "https://www.sunsetsailtravel.example/",
+    "social": {
+      "facebook": "https://www.facebook.com/sunsetsailtravel",
+      "instagram": "https://www.instagram.com/sunsetsailtravel",
+      "linkedin": "https://www.linkedin.com/company/sunsetsailtravel"
+    }
+  },
+
+  "brand_voice": {
+    "tone": "Warm, knowledgeable, reassuring — an experienced neighbor who happens to know ships.",
+    "preferred_usage": [
+      "Refer to packages as \"bundles\" (lowercase) or by full name, e.g., \"the 7-Night Western Caribbean Cruise Bundle\"",
+      "Emphasize the human-in-the-loop: quotes are reviewed by a real advisor within 1 business day",
+      "Use \"all-in pricing\" when describing quotes (taxes and fees included)",
+      "Use \"vacation bundles\" or \"trip bundles\" instead of \"cruise bundles\" where applicable"
+    ],
+    "avoid": [
+      "\"Cheapest\" or \"discount\" claims — positioning is value and completeness, not lowest price",
+      "Automated-booking language; bookings are finalized by the advisor, not a bot",
+      "Guaranteeing specific port calls or weather-dependent experiences"
+    ]
+  },
+
+  "press_assets": {
+    "logo": {
+      "primary_svg": "https://www.sunsetsailtravel.example/assets/logo.svg",
+      "primary_png": "https://www.sunsetsailtravel.example/assets/logo.png",
+      "horizontal_lockup": "https://www.sunsetsailtravel.example/assets/logo-horizontal.png",
+      "icon_only": "https://www.sunsetsailtravel.example/assets/favicon-512.png"
+    },
+    "brand_colors": [
+      { "name": "Sand Navy", "hex": "#0b2545", "usage": "primary backgrounds, headers" },
+      { "name": "Sand Primary", "hex": "#d4a373", "usage": "calls to action, highlights" },
+      { "name": "Sand Secondary", "hex": "#ccd5ae", "usage": "accents, hover states" },
+      { "name": "Sand Light", "hex": "#fefae0", "usage": "backgrounds, section alternates" },
+      { "name": "Sand Dark", "hex": "#1c2430", "usage": "body text, dark text" }
+    ],
+    "photography": [
+      {
+        "title": "Signature: ship at golden hour",
+        "url": "https://www.sunsetsailtravel.example/press/photo-ship-golden-hour.jpg",
+        "alt_text": "Cruise ship on calm waters during golden hour, orange and blue sky",
+        "license": "Editorial use with attribution 'Courtesy of Sunset & Sail Travel'",
+        "credit": "Sunset & Sail Travel"
+      },
+      {
+        "title": "Advisor portrait",
+        "url": "https://www.sunsetsailtravel.example/assets/founder-headshot.jpg",
+        "alt_text": "[Name], Destination Travel Specialist and founder of Sunset & Sail Travel",
+        "license": "Editorial use with attribution 'Courtesy of Sunset & Sail Travel'",
+        "credit": "Sunset & Sail Travel"
+      },
+      {
+        "title": "Bundle components flat lay",
+        "url": "https://www.sunsetsailtravel.example/press/photo-flatlay.jpg",
+        "alt_text": "Travel documents including boarding pass, luggage tag, and shore excursion tickets arranged on wooden table",
+        "license": "Editorial use with attribution 'Courtesy of Sunset & Sail Travel'",
+        "credit": "Sunset & Sail Travel"
+      }
+    ]
+  },
+
+  "boilerplate": {
+    "short": "Sunset & Sail Travel packages round-trip airfare, hotels, transfers, car rentals, and destination tickets into one all-inclusive vacation bundle, with a real travel advisor on every booking.",
+    "standard": "Sunset & Sail Travel is a destination travel specialist that packages air travel, hotels, car rentals, and destination tickets into a single all-inclusive quote centered on cruise sailings. Bundles feature protected-airfare options, pre-cruise hotel stays, port transfers timed to each sailing, and destination tickets — reviewed and supported by a licensed human advisor, with replies to quote requests within one business day. Based in Tampa, Florida, serving clients across the U.S. and Canada.",
+    "long_form": "[Optional: Expand on founding story, specialty routes (Caribbean, Alaska, Mediterranean), and why the human-in-the-loop model reduces risk for vacation travelers.]"
+  },
+
+  "key_facts": {
+    "markets_served": ["United States", "Canada"],
+    "specialties": [
+      "Round-trip vacation bundle packaging (air + cabin + hotel + transfers + tickets)",
+      "Pre-cruise hotel coordination with port transfers",
+      "Secondary-airport departures and overnight-connection planning",
+      "Missed-ship protection via bundled airfare programs"
+    ],
+    "featured_bundles": [
+      {
+        "id": "caribbean-bundle",
+        "name": "7-Night Western Caribbean Cruise Bundle",
+        "budget_tier": "economy",
+        "min_price_usd_per_person": 1500,
+        "max_price_usd_per_person": 2500,
+        "availability": "In Stock",
+        "highlights": ["Round-trip air", "Pre-cruise hotel", "Cozumel, Grand Cayman & Jamaica", "Rental car", "Two shore excursions", "Travel insurance"]
+      },
+      {
+        "id": "alaska-bundle",
+        "name": "10-Night Alaska Glacier Cruise Bundle",
+        "budget_tier": "premium",
+        "min_price_usd_per_person": 2500,
+        "max_price_usd_per_person": 4000,
+        "availability": "In Stock",
+        "highlights": ["Flights to Seattle", "Glacier itinerary", "Seattle city tour", "Attraction day pass", "Travel insurance"]
+      },
+      {
+        "id": "mediterranean-bundle",
+        "name": "12-Night Mediterranean Grand Tour Bundle",
+        "budget_tier": "luxury",
+        "min_price_usd_per_person": 4000,
+        "max_price_usd_per_person": 9999,
+        "availability": "Limited Availability",
+        "availability_note": "Contact for upcoming sailings",
+        "highlights": ["Flights to Barcelona", "12-night sailing", "Rail pass", "Skip-the-line tickets", "Travel insurance"]
+      }
+    ],
+    "contact": {
+      "press_inquiries": "quotes@sunsetsailtravel.example",
+      "privacy_inquiries": "privacy@sunsetsailtravel.example",
+      "phone": "+1-555-014-7788",
+      "mailing_address": "400 Harbor Lane, Suite 210, Tampa, FL 33602, USA",
+      "response_time": "1 business day",
+      "data_retention_days": 90
+    }
+  },
+
+  "usage_guidelines": {
+    "permitted": [
+      "Publishing the standard boilerplate verbatim or edited for length",
+      "Using press photography with the credit line above",
+      "Quoting budget ranges with the qualifier 'per person, double occupancy'"
+    ],
+    "prohibited": [
+      "Implying endorsement by named cruise lines, airlines, or hotel brands",
+      "Presenting budget ranges as guaranteed totals (final quotes vary by date, cabin, and departure city)",
+      "Modifying logos outside provided assets"
+    ]
+  },
+
+  "machine_readable_related_assets": {
+    "llms_txt": "https://www.sunsetsailtravel.example/llms.txt",
+    "ai_discovery": "https://www.sunsetsailtravel.example/.well-known/ai",
+    "schema": "TravelAgency, TouristTrip, Offer, FAQPage JSON-LD embedded in index.html",
+    "about_section_html": "https://www.sunsetsailtravel.example/#about"
+  }
+}
