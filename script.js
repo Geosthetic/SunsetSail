@@ -1,71 +1,64 @@
 /**
  * Sunset & Sail Travel — script.js
+ * Version: 3.0 · 2026-10-17
+ *
  * Responsibilities:
- *  1. Load bundle data (API if available, fallback to static catalog)
- *  2. Handle the quote request form
- *  3. Expose a tiny client-side adapter so agents/APIs have a predictable surface
+ *  1. Enhance the Featured Cruises module with a live
+ *     estimate engine (anchor price + preference deltas)
+ *  2. Enforce price freshness (expires → stale fallback UI)
+ *  3. Handle the quote request form (incl. estimate snapshot)
+ *  4. Packing checklist drawer (unchanged feature set)
+ *
+ * PRICING MODEL:
+ *  - Anchor price ships in index.html (static, crawlable, honest)
+ *  - data/bundles.json supplies the adjustment deltas
+ *  - Estimate = anchor + Σ(signed deltas for 6 dimensions)
+ *  - Estimates are labelled "estimate"; only the advisor's written
+ *    offer is firm.
+ *
+ * CHANGES v3.0:
+ *  - REMOVED: tiered FALLBACK_BUNDLES catalog + renderBundles()
+ *    (budget ranges retired as display mechanism)
+ *  - ADDED:   estimator engine, staleness clock, air-restriction
+ *             combinatorics, quote snapshot, segmented-control
+ *             fallback, print-checklist class gate
  */
 
 /* ------------------------------------------------------------------
- * CONFIG — point these at your real backend when ready
+ * CONFIG
  * ------------------------------------------------------------------ */
 const API_CONFIG = {
   baseUrl: 'https://api.sunsetsailtravel.example/v1',
   endpoints: {
-    bundles: '/bundles',       // GET → list of active vacation bundles
-    quotes:  '/quote-requests' // POST → submit quote request
+    bundles: '/bundles',        // GET  → { price_stale, featuredCruises, ... }
+    quotes:  '/quote-requests'  // POST → quote request
   },
-  timeoutMs: 6000
+  timeoutMs: 6000,
+  localCatalog: '/data/bundles.json'
 };
 
-/* ------------------------------------------------------------------
- * STATIC CATALOG — the "knowledge cluster" fallback.
- * Keep in sync with JSON-LD schema in index.html.
- * ------------------------------------------------------------------ */
-const FALLBACK_BUNDLES = [
-  {
-    id: 'caribbean-bundle',
-    name: '7-Night Western Caribbean Cruise Bundle',
-    nights: 7,
-    region: 'Caribbean',
-    summary: 'Round-trip flights, 1-night pre-cruise hotel with transfers, 7-night cruise to Cozumel, Grand Cayman & Jamaica, rental car, two shore excursion tickets.',
-    priceTier: 'economy',
-    minPrice: 1500,
-    maxPrice: 2500,
-    currency: 'USD',
-    inStock: true,
-    includes: ['Round-trip air', 'Pre-cruise hotel', 'Port transfers', 'Rental car', '2 shore excursion tickets', 'Travel insurance']
-  },
-  {
-    id: 'alaska-bundle',
-    name: '10-Night Alaska Glacier Cruise Bundle',
-    nights: 10,
-    region: 'Alaska',
-    summary: 'Flights to Seattle, pre-cruise hotel, glacier itinerary, Seattle city tour, post-cruise attraction day pass.',
-    priceTier: 'premium',
-    minPrice: 2500,
-    maxPrice: 4000,
-    currency: 'USD',
-    inStock: true,
-    includes: ['Round-trip air', 'Pre-cruise hotel', 'City tour', 'Attraction day pass', 'Travel insurance']
-  },
-  {
-    id: 'mediterranean-bundle',
-    name: '12-Night Mediterranean Grand Tour Bundle',
-    nights: 12,
-    region: 'Mediterranean',
-    summary: 'Flights to Barcelona, 2-night pre-cruise hotel, 12-night cruise, rail pass, skip-the-line tickets.',
-    priceTier: 'luxury',
-    minPrice: 4000,
-    maxPrice: 9999,
-    currency: 'USD',
-    inStock: false, // Limited availability
-    includes: ['Round-trip air', '2 hotel nights', 'Rail pass', 'Attraction tickets', 'Travel insurance']
-  }
+/* Dimensions of the estimate, in display/breakdown order */
+const ESTIMATE_DIMENSIONS = [
+  'homeAirport',
+  'dateFlexibility',
+  'airMode',
+  'cabinCategory',
+  'occupancy',
+  'hotelNights'
 ];
+
+const STALE_POLL_MS = 60 * 60 * 1000; // re-check expiry hourly
+
+/* ------------------------------------------------------------------
+ * STATE
+ * ------------------------------------------------------------------ */
+let cruiseData = null; // parsed bundles.json (or API response)
 
 /* ------------------------------------------------------------------
  * DATA LOADING
+ *  Try API → fall back to local data/bundles.json → stay static.
+ *  Static HTML already carries anchor prices, so total failure
+ *  degrades gracefully (estimator simply never initializes).
  * ------------------------------------------------------------------ */
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
@@ -77,59 +70,245 @@ async function fetchWithTimeout(url, options = {}) {
   }
 }
 
-async function loadBundles() {
+async function loadCruiseData() {
   try {
     const res = await fetchWithTimeout(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.bundles}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    const json = await res.json();
+    if (json && Array.isArray(json.featuredCruises)) return json;
+    throw new Error('Unexpected API shape');
   } catch (err) {
-    console.info('Bundles API unavailable, using static catalog.', err.message);
-    return FALLBACK_BUNDLES;
+    console.info('Bundles API unavailable, trying local catalog.', err.message);
+    try {
+      const res = await fetch(API_CONFIG.localCatalog);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (json && Array.isArray(json.featuredCruises)) return json;
+      throw new Error('Local catalog missing featuredCruises');
+    } catch (err) {
+      console.warn('Estimator disabled — static anchor prices remain.', err.message);
+      return null;
+    }
   }
 }
 
-function renderBundles(bundles) {
-  const grid = document.getElementById('bundleGrid');
-  if (!grid || !Array.isArray(bundles)) return;
+/* ------------------------------------------------------------------
+ * ESTIMATOR ENGINE
+ * ------------------------------------------------------------------ */
 
-  grid.innerHTML = bundles.map(b => `
-    <article class="bundle-card" data-bundle-id="${b.id}">
-      <h3>${escapeHtml(b.name)}</h3>
-      <p>${escapeHtml(b.description || b.summary || '')}</p>
-      ${b.inStock === false ? '<p class="badge badge-limited">Limited availability</p>' : ''}
-      <ul class="bundle-includes">
-        ${(b.includes || []).map(i => `<li>${escapeHtml(i)}</li>`).join('')}
-      </ul>
-      ${b.priceTier ? `
-        <p class="price">Budget range: <span>$${Number(b.minPrice).toLocaleString()}–$${Number(b.maxPrice).toLocaleString()}</span> per person (${capitalize(b.priceTier)})</p>
-      ` : `
-        <p class="price">From <span>$${Number(b.pricePerPerson).toLocaleString()}</span> per person</p>
-      `}
-      <a class="btn btn-secondary" href="#quote" data-prefill="${b.id}">Ask about this bundle</a>
-    </article>
-  `).join('');
+/** Parse an ISO-ish timestamp leniently ('2026-10-31', full ISO, etc.) */
+function parseTs(value) {
+  if (!value) return NaN;
+  const t = Date.parse(String(value).length <= 10 ? `${value}T00:00:00Z` : value);
+  return t;
+}
 
-  // Prefill the quote form when someone clicks a specific bundle
-  grid.querySelectorAll('[data-prefill]').forEach(link => {
-    link.addEventListener('click', () => {
-      const select = document.getElementById('qInterest');
-      if (select) select.value = link.dataset.prefill;
+/** Anchor defaults: explicit in data, else infer (delta 0 key, else first). */
+function anchorDefaults(cruise) {
+  const explicit = cruise.anchorDefaults || cruise.anchorPrice?.defaults;
+  const out = {};
+  ESTIMATE_DIMENSIONS.forEach(dim => {
+    if (explicit && explicit[dim]) { out[dim] = explicit[dim]; return; }
+    const map = cruise.priceAdjustments?.[dim];
+    if (!map) return;
+    const zero = Object.keys(map).find(k => map[k] === 0);
+    out[dim] = zero || Object.keys(map)[0];
+  });
+  return out;
+}
+
+/** Is cruise-line air selectable from this gateway? */
+function airAllowed(cruise, dim, key, selections) {
+  const program = cruise.airProgram;
+  if (!program || dim !== 'airMode') return true;
+  if (key !== 'cruise_line_air') return true;
+  const gateway = selections.homeAirport;
+  if (!gateway || !program.restrictedGateways) return true;
+  return program.restrictedGateways.includes(gateway);
+}
+
+/** Recompute the estimate for one cruise card and repaint its UI. */
+function computeEstimate(cruise, cardEl) {
+  const defaults = anchorDefaults(cruise);
+  const selections = {};
+  let anchor = cruise.anchorPrice?.amount ?? null;
+  if (typeof anchor !== 'number') { disableEstimator(cardEl, cruise); return; }
+
+  let violation = null;
+  let total = anchor;
+
+  ESTIMATE_DIMENSIONS.forEach(dim => {
+    const select = cardEl.querySelector(`[data-dimension="${dim}"]`);
+    const val = select ? select.value : defaults[dim];
+    selections[dim] = val;
+    const delta = cruise.priceAdjustments?.[dim]?.[val];
+    if (typeof delta !== 'number') {
+      if (val != null) console.warn(`Missing delta: ${cruise.id}.${dim}.${val}`);
+    } else {
+      total += delta;
+    }
+    // Air-program combinatorics
+    if (dim === 'airMode' && !airAllowed(cruise, dim, val, selections)) {
+      violation = val;
+    }
+  });
+
+  const note = cardEl.querySelector('.field-note');
+  const airSelect = cardEl.querySelector('[data-dimension="airMode"]');
+  if (airSelect) {
+    const badOpt = airSelect.querySelector('option[value="cruise_line_air"]');
+    if (badOpt) {
+      badOpt.disabled = !airAllowed(cruise, 'airMode', 'cruise_line_air', selections);
+    }
+  }
+  if (violation) {
+    if (note) {
+      note.textContent = `Cruise-line air isn't available from ${selections.homeAirport}. ` +
+        `Choose independent air or cruise-only.`;
+      note.dataset.reason = 'air-restricted';
+    }
+    // Hold the last valid estimate rather than showing a bogus total
+    return;
+  } else if (note && note.dataset.reason === 'air-restricted') {
+    note.textContent = note.dataset.defaultText || '';
+    delete note.dataset.reason;
+  }
+
+  /* Breakdown: anchor line + one line per non-zero delta */
+  const lines = [{ label: 'Anchor price', amount: anchor }];
+  ESTIMATE_DIMENSIONS.forEach(dim => {
+    const delta = cruise.priceAdjustments?.[dim]?.[selections[dim]];
+    if (typeof delta === 'number' && delta !== 0) {
+      lines.push({ label: dimensionLabel(dim, selections[dim]), amount: delta });
+    }
+  });
+
+  const breakdown = cardEl.querySelector('.estimate-breakdown');
+  if (breakdown) {
+    breakdown.innerHTML =
+      lines.map(l => `
+        <div class="estimate-line">
+          <span>${escapeHtml(l.label)}</span>
+          <span class="estimate-value">${fmtDelta(l.amount)}</span>
+        </div>`).join('') +
+      `<div class="estimate-total">
+         <span>Your estimated total</span>
+         <span class="estimate-value">${money(total)}</span>
+       </div>
+       <p class="estimate-caveat">Estimate only — your final price is confirmed
+       in a written offer from your advisor.</p>`;
+    breakdown.setAttribute('aria-live', 'polite');
+  }
+
+  /* Snapshot onto the CTA so the quote form captures selections */
+  const cta = cardEl.querySelector('[data-prefill]');
+  if (cta) {
+    cta.dataset.estimate = total;
+    cta.dataset.selections = JSON.stringify(selections);
+    cta.dataset.priceAsOf = cruise.asOf || '';
+    cta.dataset.validThrough = cruise.expires || '';
+  }
+}
+
+function dimensionLabel(dim, key) {
+  const dict = {
+    homeAirport: `From ${key.replace(/_/g, ' ')}`,
+    dateFlexibility: 'Date flexibility',
+    airMode: key.replace(/_/g, ' '),
+    cabinCategory: key.replace(/_/g, ' '),
+    occupancy: key.replace(/_/g, ' '),
+    hotelNights: key === 'none' ? 'No hotel stay' : `Hotel (${key.replace(/_/g, ' ')})`
+  };
+  return dict[dim] || key;
+}
+
+function money(n) { return `$${Number(n).toLocaleString()}`; }
+function fmtDelta(n) { return (n >= 0 ? '+' : '−') + `$${Math.abs(Number(n)).toLocaleString()}`; }
+
+function disableEstimator(cardEl, cruise) {
+  console.warn(`No anchor price for ${cruise?.id} — estimator hidden.`);
+  cardEl.querySelectorAll('[data-dimension]').forEach(el => el.disabled = true);
+  const bd = cardEl.querySelector('.estimate-breakdown');
+  if (bd) bd.hidden = true;
+}
+
+/* ------------------------------------------------------------------
+ * STALENESS
+ *  Past expires: hide figures, swap CTA, disable controls.
+ *  script-side gate mirrors the build.js/CI server-side gate —
+ *  belt and braces for a tab left open overnight.
+ * ------------------------------------------------------------------ */
+function applyStaleness(cruise, cardEl) {
+  const expiry = parseTs(cruise?.expires);
+  if (Number.isNaN(expiry)) return;
+  const fresh = Date.now() < expiry;
+
+  const validity = cardEl.querySelector('.price-validity');
+  if (!fresh) {
+    cardEl.classList.add('is-stale');
+    cardEl.querySelectorAll('[data-dimension]').forEach(el => el.disabled = true);
+    const cta = cardEl.querySelector('[data-prefill]');
+    if (cta) {
+      cta.textContent = cruise.staleCta || 'Request current pricing';
+    }
+    const staleMsg = document.createElement('p');
+    staleMsg.className = 'price-stale';
+    staleMsg.textContent = 'This price window has closed — ask us for today\'s pricing.';
+    cardEl.querySelector('.cruise-price-block')?.appendChild(staleMsg);
+  } else if (cardEl.classList.contains('is-stale')) {
+    // Data got fresher (API refresh mid-session)
+    cardEl.classList.remove('is-stale');
+    cardEl.querySelectorAll('[data-dimension]').forEach(el => el.disabled = false);
+    cardEl.querySelector('.price-stale')?.remove();
+  }
+}
+
+function startStalenessClock() {
+  setInterval(() => {
+    if (!cruiseData) return;
+    document.querySelectorAll('[data-cruise-id]').forEach(cardEl => {
+      const cruise = findCruise(cardEl.dataset.cruiseId);
+      if (cruise) applyStaleness(cruise, cardEl);
     });
+  }, STALE_POLL_MS);
+}
+
+function findCruise(id) {
+  return (cruiseData?.featuredCruises || []).find(c => c.id === id);
+}
+
+/* ------------------------------------------------------------------
+ * WIRING — estimator per card
+ * ------------------------------------------------------------------ */
+function wireEstimators() {
+  document.querySelectorAll('[data-cruise-id]').forEach(cardEl => {
+    const cruise = findCruise(cardEl.dataset.cruiseId);
+    if (!cruise) return;
+    applyStaleness(cruise, cardEl);
+
+    const note = cardEl.querySelector('.field-note');
+    if (note) note.dataset.defaultText = note.textContent;
+
+    cardEl.querySelectorAll('[data-dimension]').forEach(select => {
+      select.addEventListener('change', () => computeEstimate(cruise, cardEl));
+    });
+    computeEstimate(cruise, cardEl); // initial paint (should equal anchor)
   });
 }
 
 /* ------------------------------------------------------------------
  * QUOTE FORM
+ *  Submits to API; falls back to mailto. Attaches a snapshot of the
+ *  visitor's estimate context (cruise, selections, total, validity
+ *  window) so the advisor rebuilds the exact figure they saw.
  * ------------------------------------------------------------------ */
 async function submitQuote(payload) {
   try {
     const res = await fetchWithTimeout(
       `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.quotes}`,
-      {
-        method: 'POST',
+      { method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }
+        body: JSON.stringify(payload) }
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return { ok: true };
@@ -139,20 +318,42 @@ async function submitQuote(payload) {
   }
 }
 
+function collectSnapshot(ctaData) {
+  if (!ctaData?.estimate) return null;
+  return {
+    cruiseId: ctaData.prefill,
+    estimateTotal: Number(ctaData.estimate),
+    selections: JSON.parse(ctaData.selections || '{}'),
+    priceAsOf: ctaData.priceAsOf,
+    validThrough: ctaData.validThrough
+  };
+}
+
 function wireQuoteForm() {
   const form = document.getElementById('quoteForm');
   const status = document.getElementById('formStatus');
   if (!form) return;
 
+  /* Prefill from any cruise CTA click */
+  document.querySelectorAll('[data-prefill]').forEach(cta => {
+    cta.addEventListener('click', () => {
+      const select = document.getElementById('qInterest');
+      if (select) select.value = cta.dataset.prefill;
+      const lastSnap = collectSnapshot(cta.dataset);
+      if (lastSnap) {
+        document.getElementById('qEstimateSnapshot').value = JSON.stringify(lastSnap);
+      }
+    });
+  });
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     if (!form.reportValidity()) return;
 
-    // Validate privacy consent
     const consentCheckbox = document.getElementById('qConsent');
     if (!consentCheckbox || !consentCheckbox.checked) {
-      status.textContent = '❌ Please accept the privacy consent to continue.';
+      status.className = 'error';
+      status.textContent = 'Please accept the privacy consent to continue.';
       consentCheckbox.focus();
       return;
     }
@@ -160,16 +361,22 @@ function wireQuoteForm() {
     const formData = Object.fromEntries(new FormData(form));
     formData.partySize = Number(formData.partySize) || 2;
     formData.submittedAt = new Date().toISOString();
+    if (formData.estimateSnapshot) {
+      try { formData.estimateSnapshot = JSON.parse(formData.estimateSnapshot); } catch (_) {}
+    }
 
+    status.className = '';
     status.textContent = 'Sending your request…';
     const result = await submitQuote(formData);
 
     if (result.ok) {
-      status.textContent = '✅ Thanks! Your quote request was received — expect a reply within 1 business day.';
+      status.className = 'success';
+      status.textContent = 'Thanks! Your quote request was received — expect a reply within 1 business day.';
       form.reset();
     } else {
-      // Human-in-the-loop fallback: open the visitor's email client pre-filled
-      const subject = encodeURIComponent(`Quote request: ${formData.bundle || 'vacation bundle'} (${formData.partySize} travelers)`);
+      const s = formData.estimateSnapshot || {};
+      const subject = encodeURIComponent(
+        `Quote request: ${formData.bundle || s.cruiseId || 'vacation bundle'} (${formData.partySize} travelers)`);
       const body = encodeURIComponent(
         `Name: ${formData.name}\n` +
         `Email: ${formData.email}\n` +
@@ -179,12 +386,50 @@ function wireQuoteForm() {
         `Travelers: ${formData.partySize}\n` +
         `Preferred Dates: ${formData.preferredDates || 'Flexible'}\n` +
         `Budget Tier: ${formData.budgetTier || 'Not specified'}\n` +
+        (s.estimateTotal ? `Estimated Total Seen: ${money(s.estimateTotal)} ` +
+          `(prices as of ${s.priceAsOf || 'n/a'}, valid through ${s.validThrough || 'n/a'})\n` +
+          `Selections: ${JSON.stringify(s.selections)}\n` : '') +
         `Traveler Info: ${formData.travelerInfo || 'Not provided'}\n` +
         `Notes: ${formData.notes}`
       );
       window.location.href = `mailto:quotes@sunsetsailtravel.example?subject=${subject}&body=${body}`;
       status.textContent = 'Opening your email app to finish sending the request…';
     }
+  });
+}
+
+/* ------------------------------------------------------------------
+ * SEGMENTED CONTROL — .is-checked fallback for engines without :has()
+ * ------------------------------------------------------------------ */
+function wireSegmentedControls() {
+  document.querySelectorAll('.segmented').forEach(group => {
+    const labels = group.querySelectorAll('label');
+    const sync = () => labels.forEach(l => {
+      const input = l.querySelector('input[type="radio"]');
+      if (input) l.classList.toggle('is-checked', input.checked);
+    });
+    group.addEventListener('change', sync);
+    sync();
+  });
+}
+
+/* ------------------------------------------------------------------
+ * CAROUSEL CONTROLS — arrow-key + button scrolling (mobile row)
+ * ------------------------------------------------------------------ */
+function wireCarouselControls() {
+  const track = document.querySelector('.cruise-carousel');
+  const controls = document.querySelector('.carousel-controls');
+  if (!track || !controls) return;
+  const step = () => (track.querySelector('.cruise-card')?.offsetWidth || 320) + 20;
+  controls.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      track.scrollBy({ left: btn.dataset.dir === 'prev' ? -step() : step(), behavior: 'smooth' });
+    });
+  });
+  track.setAttribute('tabindex', '0');
+  track.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); track.scrollBy({ left: -step(), behavior: 'smooth' }); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); track.scrollBy({ left:  step(), behavior: 'smooth' }); }
   });
 }
 
@@ -205,240 +450,11 @@ function capitalize(str) {
  * INIT
  * ------------------------------------------------------------------ */
 document.addEventListener('DOMContentLoaded', async () => {
-  renderBundles(await loadBundles());
+  cruiseData = await loadCruiseData();
+  wireEstimators();
   wireQuoteForm();
+  wireSegmentedControls();
+  wireCarouselControls();
+  startStalenessClock();
+  PackList.init();
 });
-
-/* ------------------------------------------------------------------
- * PACKING CHECKLIST POPUP
- *  - Slides in, checkboxes persist (localStorage), printable,
- *    paper SFX via Web Audio API, vertical action rail.
- * ------------------------------------------------------------------ */
-const PACK_DATA = [
-  { name: '📄 Paperwork & Pocket Cash', items: [
-    'Passport (valid 6+ months past sail date)',
-    'Photo ID (closed-loop sailings)',
-    'Boarding pass / cruise e-docs',
-    'Printed luggage tags',
-    'Credit cards + modest cash',
-    'Travel insurance details',
-    'Health or vaccine paperwork (if required)',
-    'Flight confirmations / parking pass'
-  ]},
-  { name: '🎒 Day-One Gear', items: [
-    'Phone & charging cable',
-    'Power bank',
-    'Cruise-safe non-surge power strip',
-    'Medications in original containers',
-    'Reef-friendly sunscreen',
-    'Aloe / after-sun care',
-    'SPF lip balm',
-    'Collapsible water bottle'
-  ]},
-  { name: '👕 Wardrobe', items: [
-    'Underwear & socks',
-    'Sleepwear',
-    'Tees & polos',
-    'Shorts / casual pants',
-    'Swimwear (2+ sets)',
-    'Cover-up / rash guard',
-    'Evening outfit & dressy shoes',
-    'Light jacket (cool ship A/C)'
-  ]},
-  { name: '👟 Footwear', items: [
-    'Walking shoes / sneakers',
-    'Flip-flops / pool slides',
-    'Dress shoes',
-    'Water shoes (rocky beaches)'
-  ]},
-  { name: '🧴 Fresh-Up Kit', items: [
-    'Toothbrush, paste & floss',
-    'Deodorant',
-    'Brush & hair ties',
-    'Travel shampoo / conditioner',
-    'Face wash & moisturizer',
-    'Makeup & remover',
-    'Razor & shave cream',
-    'Mini first-aid pouch'
-  ]},
-  { name: '🏖️ Port-Day Kit', items: [
-    'Beach tote / daypack',
-    'Quick-dry towel or towel clips',
-    'Waterproof phone pouch',
-    'Polarized sunglasses',
-    'Sun hat / cap',
-    'Snorkel set (optional)',
-    'Bug spray (port days)'
-  ]},
-  { name: '🚪 Cabin Comforts', items: [
-    'Strong magnetic hooks',
-    'Over-door organizer (optional)',
-    'USB night-light',
-    'Fold-flat laundry bag',
-    'Zip-top bags (wet suits / snacks)',
-    'Highlighter for the daily planner',
-    'Small fan (check line rules)'
-  ]},
-  { name: '💊 Feel-Good Kit', items: [
-    'Seasickness bands / patches',
-    'Non-drowsy motion remedy',
-    'Electrolyte packets',
-    'Hand sanitizer / wipes',
-    'Pocket tissues'
-  ]}
-];
-
-const PackList = (() => {
-  const KEY = 'sunsetSail.packlist.v1';
-  let audioCtx = null;
-
-  const $ = (sel) => document.querySelector(sel);
-  const panel   = () => $('#packPanel');
-  const overlay = () => $('#packOverlay');
-
-  /* --- Paper rustle SFX: filtered white-noise burst, no file needed --- */
-  function playPaper() {
-    try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const dur = 0.22;
-      const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < data.length; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
-      }
-      const src = audioCtx.createBufferSource();
-      src.buffer = buf;
-      const hp = audioCtx.createBiquadFilter();
-      hp.type = 'highpass'; hp.frequency.value = 2500;
-      const vol = audioCtx.createGain();
-      vol.gain.value = 0.12;
-      src.connect(hp).connect(vol).connect(audioCtx.destination);
-      src.start();
-    } catch (_) { /* audio unsupported — stay silent */ }
-  }
-
-  function render() {
-    const body = $('#packBody');
-    body.innerHTML = PACK_DATA.map((cat, ci) => `
-      <section class="pack-category">
-        <h3>${escapeHtml(cat.name)}</h3>
-        ${cat.items.map((item, ii) => `
-          <div class="pack-item">
-            <input type="checkbox" id="pk-${ci}-${ii}"
-                   data-pack-item aria-describedby="pk-l-${ci}-${ii}">
-            <label for="pk-${ci}-${ii}" id="pk-l-${ci}-${ii}">${escapeHtml(item)}</label>
-          </div>`).join('')}
-      </section>`).join('');
-
-    body.addEventListener('change', onToggle);
-    restore();
-    updateProgress();
-  }
-
-  function onToggle(e) {
-    if (!e.target.matches('[data-pack-item]')) return;
-    const item = e.target.closest('.pack-item');
-    item.classList.toggle('checked', e.target.checked);
-    playPaper();
-    persist();
-    updateProgress();
-  }
-
-  function boxes() { return [...document.querySelectorAll('[data-pack-item]')]; }
-
-function updateProgress() {
-  const all = boxes(); // calls the outer boxes() helper
-  const done = all.filter(b => b.checked).length;
-  $('#packProgress').textContent =
-    `${done} of ${all.length} packed` + (done === all.length && all.length ? ' — you\'re ready to sail! ⚓' : '');
-}
-
-  function persist() {
-    const checked = boxes().filter(b => b.checked).map(b => b.id);
-    try { localStorage.setItem(KEY, JSON.stringify(checked)); } catch (_) {}
-  }
-
-  function restore() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(KEY) || '[]');
-      boxes().forEach(b => {
-        if (saved.includes(b.id)) {
-          b.checked = true;
-          b.closest('.pack-item').classList.add('checked');
-        }
-      });
-    } catch (_) {}
-  }
-
-  function open() {
-    overlay().hidden = false;
-    panel().hidden = false;
-    requestAnimationFrame(() => {          // allow paint before transitioning
-      overlay().classList.add('show');
-      panel().classList.add('open');
-    });
-    panel().querySelector('.pack-btn').focus();
-    $('#packTrigger').setAttribute('aria-expanded', 'true');
-  }
-
-  function close() {
-    panel().classList.remove('open');
-    overlay().classList.remove('show');
-    setTimeout(() => { panel().hidden = true; overlay().hidden = true; }, 350);
-    $('#packTrigger').setAttribute('aria-expanded', 'false');
-    $('#packTrigger').focus();
-  }
-
-  function download() {
-    const lines = [`CRUISE PACKING CHECKLIST — ${new Date().toLocaleDateString()}`, ''];
-    PACK_DATA.forEach(cat => {
-      lines.push(cat.name.toUpperCase());
-      cat.items.forEach((item, i) => {
-        const cb = document.getElementById(`pk-${PACK_DATA.indexOf(cat)}-${i}`);
-        lines.push(`  [${cb && cb.checked ? 'x' : ' '}] ${item}`);
-      });
-      lines.push('');
-    });
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(blob),
-      download: 'cruise-packing-checklist.txt'
-    });
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
-
-  function wire() {
-    $('#packTrigger').addEventListener('click', () =>
-      panel().classList.contains('open') ? close() : open());
-
-    panel().addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-action]');
-      if (!btn) return;
-      switch (btn.dataset.action) {
-        case 'print':     window.print(); break;
-        case 'download':  download(); break;
-        case 'selectAll': boxes().forEach(b => {
-                            b.checked = true;
-                            b.closest('.pack-item').classList.add('checked');
-                          }); playPaper(); persist(); updateProgress(); break;
-        case 'clear':     boxes().forEach(b => {
-                            b.checked = false;
-                            b.closest('.pack-item').classList.remove('checked');
-                          }); persist(); updateProgress(); break;
-        case 'close':     close(); break;
-      }
-    });
-
-    overlay().addEventListener('click', close);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && panel().classList.contains('open')) close();
-    });
-  }
-
-  return { init() { render(); wire(); } };
-})();
-
-// Hook into the existing init flow
-document.addEventListener('DOMContentLoaded', () => PackList.init());

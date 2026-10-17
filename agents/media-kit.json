@@ -1,31 +1,27 @@
 {
   "$schema": "https://example.org/schemas/media-kit/v1",
-  "kit_version": "1.1",
-  "last_updated": "2026-10-02",
+  "kit_version": "1.2",
+  "last_updated": "2026-10-17",
+  "mockData": true,
+  "mockDataNote": "ALL client-identifying data, credentials, and prices are placeholders. Not cleared for publication.",
 
   "brand": {
     "name": "Sunset & Sail Travel",
     "legal_name": "Sunset & Sail Travel LLC",
     "tagline": "A seamless journey, one bundle, one price, every detail refined.",
+    "taglineNote": "Reading A — consolidation (one total instead of many) is the intended meaning. Reading B (immutability) is a misinterpretation. The anchor-price model is consistent with Reading A.",
     "description": "Destination Travel Specialist packaging round-trip airfare, pre-cruise hotels, port transfers, car rentals, and destination tickets into all-inclusive vacation bundles. Serving U.S. and Canadian travelers with personal, human-led service.",
     "founded": "2026",
-    
+
     "founder": {
       "name": "[Your Full Name]",
       "title": "Destination Travel Specialist | Founder",
-      
       "pronouns": "[optional: e.g., she/her, he/him, they/them]",
-      
       "bio_short": "[1 sentence for social profiles and quick intros — e.g., 'Founder of Sunset & Sail Travel; Destination Travel Specialist serving vacation planners from secondary U.S./Canadian airports.']",
-      
       "bio_standard": "[2–3 sentences for press/media use — e.g., 'Former corporate travel coordinator turned vacation specialist, [Name] founded Sunset & Sail Travel to solve the fragmentation problem: flights booked separately from cabins, hotel reservations that don't connect to port timing, destination tickets that fall through the cracks. Every client gets one all-inclusive quote, one human point of contact, and personalized monitoring through price drops and schedule changes. Based in Tampa, Florida, affiliated with [Host Agency].']",
-      
       "bio_long_form": "[4–6 sentences for press releases or featured profiles — expand on founding story, specialty routes like Caribbean/Alaska/Mediterranean, and why the human-in-the-loop model matters for vacation planning.]",
-      
       "headshot_url": "https://www.sunsetsailtravel.example/assets/founder-headshot.jpg",
-      
       "photo_alt_text": "[Name], Destination Travel Specialist and founder of Sunset & Sail Travel",
-      
       "contact_for_interviews": "quotes@sunsetsailtravel.example"
     },
 
@@ -47,16 +43,41 @@
   "brand_voice": {
     "tone": "Warm, knowledgeable, reassuring — an experienced neighbor who happens to know ships.",
     "preferred_usage": [
-      "Refer to packages as \"bundles\" (lowercase) or by full name, e.g., \"the 7-Night Western Caribbean Cruise Bundle\"",
+      "Refer to packages as 'bundles' (lowercase) or by full name, e.g., 'the 7-Night Western Caribbean Cruise Bundle'",
       "Emphasize the human-in-the-loop: quotes are reviewed by a real advisor within 1 business day",
-      "Use \"all-in pricing\" when describing quotes (taxes and fees included)",
-      "Use \"vacation bundles\" or \"trip bundles\" instead of \"cruise bundles\" where applicable"
+      "Use 'all-in pricing' when describing anchor prices (taxes, fees, and any mandatory service fee included)",
+      "Use 'vacation bundles' or 'trip bundles' instead of 'cruise bundles' where applicable",
+      "Say 'your estimate' or 'estimated total' — never imply the number is final until the written offer",
+      "Anchor the 'from' price to one named condition set: gateway, cabin, occupancy, sail date, air mode"
     ],
     "avoid": [
-      "\"Cheapest\" or \"discount\" claims — positioning is value and completeness, not lowest price",
+      "'Cheapest' or 'discount' claims — positioning is value and completeness, not lowest price",
       "Automated-booking language; bookings are finalized by the advisor, not a bot",
-      "Guaranteeing specific port calls or weather-dependent experiences"
+      "Guaranteeing specific port calls or weather-dependent experiences",
+      "Claiming percentages without citation (e.g., '10–20%' savings must be sourced or removed)"
     ]
+  },
+
+  "price_display_standards": {
+    "anchorDefinition": "One real, bookable price at one documented condition set",
+    "anchorIncludes": "Port expenses, government taxes and fees, and any mandatory advisor service fee",
+    "anchorExcludes": "Gratuities, optional excursions, beverage packages (unless specified)",
+    "perPersonRequirement": "Always label 'per person'; state 'double occupancy' in footnotes",
+    "validityDisclosure": "Every displayed price carries 'as of [date]' and 'valid through [date]'",
+    "staleFallback": "Past expiry: hide number; CTA becomes 'Request current pricing'",
+    "noRanges": "Retire tiered budget ranges for display; keep only as quote-form qualifiers"
+  },
+
+  "data_freshness": {
+    "price_data_as_of": "2026-10-02T00:00:00Z",
+    "price_data_valid_to": "2026-10-31T00:00:00Z",
+    "refresh_cadence_days": 14,
+    "notification_ladder": {
+      "T-14": "Informational — weekly sweep digest",
+      "T-7": "Warning — rolling GitHub issue + email",
+      "T-3": "Urgent — escalated email, optional webhook",
+      "T-0": "Expired — stale flag, widget degrades, CI fails on commit"
+    }
   },
 
   "press_assets": {
@@ -94,6 +115,13 @@
         "alt_text": "Travel documents including boarding pass, luggage tag, and shore excursion tickets arranged on wooden table",
         "license": "Editorial use with attribution 'Courtesy of Sunset & Sail Travel'",
         "credit": "Sunset & Sail Travel"
+      },
+      {
+        "title": "Featured cruise: Oasis of the Seas",
+        "url": "https://www.sunsetsailtravel.example/img/featured/carib-7n-oasis.webp",
+        "alt_text": "Oasis of the Seas at sea in the Eastern Caribbean at golden hour",
+        "license": "Verify rights with host agency before publishing",
+        "credit": "Supplier imagery — rights pending"
       }
     ]
   },
@@ -115,31 +143,55 @@
     "featured_bundles": [
       {
         "id": "caribbean-bundle",
-        "name": "7-Night Western Caribbean Cruise Bundle",
+        "name": "7-Night Eastern Caribbean — Oasis of the Seas",
         "budget_tier": "economy",
-        "min_price_usd_per_person": 1500,
-        "max_price_usd_per_person": 2500,
+        "min_price_usd_per_person": 1289,
+        "max_price_usd_per_person": null,
+        "price_valid_to": "2026-10-31",
         "availability": "In Stock",
-        "highlights": ["Round-trip air", "Pre-cruise hotel", "Cozumel, Grand Cayman & Jamaica", "Rental car", "Two shore excursions", "Travel insurance"]
+        "highlights": ["Round-trip air", "1 pre-cruise hotel night", "Eastern Caribbean", "Rental car option", "Travel insurance"]
       },
       {
         "id": "alaska-bundle",
-        "name": "10-Night Alaska Glacier Cruise Bundle",
+        "name": "10-Night Alaska Glacier — Norwegian Encore",
         "budget_tier": "premium",
-        "min_price_usd_per_person": 2500,
-        "max_price_usd_per_person": 4000,
+        "min_price_usd_per_person": 2390,
+        "max_price_usd_per_person": null,
+        "price_valid_to": "2026-10-31",
         "availability": "In Stock",
-        "highlights": ["Flights to Seattle", "Glacier itinerary", "Seattle city tour", "Attraction day pass", "Travel insurance"]
+        "highlights": ["Flights to Seattle", "Glacier viewing", "Inside Passage", "Travel insurance"]
       },
       {
         "id": "mediterranean-bundle",
-        "name": "12-Night Mediterranean Grand Tour Bundle",
+        "name": "12-Night Mediterranean Grand Tour — Valiant Lady",
         "budget_tier": "luxury",
-        "min_price_usd_per_person": 4000,
-        "max_price_usd_per_person": 9999,
+        "min_price_usd_per_person": 3940,
+        "max_price_usd_per_person": null,
+        "price_valid_to": "2026-10-31",
         "availability": "Limited Availability",
         "availability_note": "Contact for upcoming sailings",
-        "highlights": ["Flights to Barcelona", "12-night sailing", "Rail pass", "Skip-the-line tickets", "Travel insurance"]
+        "highlights": ["Flights to Barcelona", "12-night sailing", "2 pre-cruise hotel nights", "Travel insurance"],
+        "ceiling_policy": "OPEN-ENDED — no maxPrice asserted"
+      }
+    ],
+    "hotel_air_bundles": [
+      {
+        "id": "hotel-air-city",
+        "name": "City Stay + Air",
+        "from_price_usd_per_person": 740,
+        "price_valid_to": "2026-10-31"
+      },
+      {
+        "id": "hotel-air-precruise",
+        "name": "Pre-Cruise Hotel + Air",
+        "from_price_usd_per_person": 890,
+        "price_valid_to": "2026-10-31"
+      },
+      {
+        "id": "hotel-air-land",
+        "name": "Land Escape + Air",
+        "from_price_usd_per_person": 610,
+        "price_valid_to": "2026-10-31"
       }
     ],
     "contact": {
@@ -156,19 +208,30 @@
     "permitted": [
       "Publishing the standard boilerplate verbatim or edited for length",
       "Using press photography with the credit line above",
-      "Quoting budget ranges with the qualifier 'per person, double occupancy'"
+      "Quoting anchor prices with the qualifier 'per person, double occupancy, from [gateway]' and citing the validity period"
     ],
     "prohibited": [
       "Implying endorsement by named cruise lines, airlines, or hotel brands",
-      "Presenting budget ranges as guaranteed totals (final quotes vary by date, cabin, and departure city)",
-      "Modifying logos outside provided assets"
-    ]
+      "Presenting anchor prices as guaranteed totals (final quotes vary by date, cabin, and departure city)",
+      "Modifying logos outside provided assets",
+      "Using supplier imagery without verifying rights with the host agency"
+    ],
+    "trademark_attribution": "Royal Caribbean, Norwegian, Virgin Voyages, and Disney are trademarks of their respective owners. Mentioned nominatively to identify offerings. No endorsement implied."
   },
 
   "machine_readable_related_assets": {
     "llms_txt": "https://www.sunsetsailtravel.example/llms.txt",
-    "ai_discovery": "https://www.sunsetsailtravel.example/.well-known/ai",
-    "schema": "TravelAgency, TouristTrip, Offer, FAQPage JSON-LD embedded in index.html",
-    "about_section_html": "https://www.sunsetsailtravel.example/#about"
-  }
+    "ai_discovery": "https://www.sunsetsailtravel.example/ai.json",
+    "ai_discovery_note": "RESOLVED: /ai.json at root is canonical. Previously referenced /.well-known/ai — corrected.",
+    "schema": "TravelAgency, Person, TouristTrip, AggregateOffer, FAQPage JSON-LD embedded in index.html",
+    "about_section_html": "https://www.sunsetsailtravel.example/#about",
+    "price_validity_schema": "https://sunsetsailtravel.example/schemas/bundles-v1.json"
+  },
+
+  "compliance_open_items": [
+    "Florida seller-of-travel registration — Tampa address triggers FDACS requirement unless exempt",
+    "Host-agency Statement of Exemption route prohibits charging service or consultation fees",
+    "California drip pricing — mandatory fees must be inside advertised price",
+    "Supplier photography and trademark rights verification pending"
+  ]
 }

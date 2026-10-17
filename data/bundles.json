@@ -1,8 +1,82 @@
 {
   "$schema": "https://sunsetsailtravel.example/schemas/bundles-v1.json",
-  "version": "1.0.0",
-  "lastUpdated": "2026-10-02T14:30:00Z",
+  "version": "2.0.0",
+  "lastUpdated": "2026-10-17T00:00:00Z",
+  "mockData": true,
+  "mockDataNote": "ALL client-identifying data, credentials, and prices are placeholders. build.js must fail production builds while mockData is true.",
   "currency": "USD",
+
+  "priceValidity": {
+    "priceDataAsOf": "2026-10-02T00:00:00Z",
+    "priceDataValidTo": "2026-10-31T00:00:00Z",
+    "refreshCadenceDays": 14,
+    "stalenessPolicy": {
+      "runtimeFlag": "price_stale",
+      "uiBehavior": "Hide the number; swap CTA to 'Request current pricing'",
+      "apiBehavior": "functions/bundles.js returns price_stale: true and never serves an expired figure",
+      "buildGuardrail": "Production build FAILS if any expires value is in the past",
+      "snapshotRule": "functions/quote-requests.js stores the anchor amount and its validity window on the submitted request"
+    },
+    "notificationLadder": {
+      "T-14": "Informational — appended to weekly sweep digest",
+      "T-7": "Warning — ONE rolling deduped GitHub issue titled 'Price refresh due' + email digest",
+      "T-3": "Urgent — escalated email; optional webhook ping",
+      "T-0": "Expired — stale flag set, widget degrades, CI fails on commit"
+    },
+    "operatorSurfaces": {
+      "digest": "Weekly sweep summary",
+      "issue": "Rolling GitHub issue, updated with checklist — never one issue per cycle",
+      "adminView": "/admin/prices — auth-gated, anchors sorted by days-remaining, refresh action"
+    }
+  },
+
+  "displayDefaults": {
+    "priceLabel": "From",
+    "priceUnit": "/person",
+    "asOfPrefix": "Prices as of",
+    "validThroughPrefix": "valid through",
+    "estimateNoun": "estimated total",
+    "cardDisclosure": "Per person, double occupancy, interior cabin, from {gateway}. Estimate only — not an offer.",
+    "sectionDisclosure": "All prices are per person, based on double occupancy, and reflect a specific cabin category and departure gateway. Estimates are not offers. Your written offer, valid for the period stated, is prepared by your advisor within 1 business day.",
+    "staleMessage": "Pricing for this sailing is being refreshed.",
+    "staleCta": "Request current pricing",
+    "dateAffordance": "View {count} dates"
+  },
+
+  "badgeTaxonomy": {
+    "air_included": { "label": "Air included", "tone": "positive" },
+    "air_restricted": { "label": "Air available — restricted gateways", "tone": "neutral" },
+    "air_none": { "label": "Cruise-only", "tone": "neutral" },
+    "best_value": { "label": "Best value", "tone": "accent" },
+    "limited": { "label": "Limited availability", "tone": "caution" }
+  },
+
+  "airModes": {
+    "cruise_line_air": {
+      "label": "Cruise-line air package",
+      "description": "Air arranged through the cruise line. Protected-airfare rebooking may apply, subject to program terms."
+    },
+    "independent_air": {
+      "label": "Independent air",
+      "description": "Air booked separately. Protection rules differ from cruise-line air programs."
+    },
+    "cruise_only": {
+      "label": "Cruise only — I'll book my own air",
+      "description": "No air component. Lowest advertised figure; you handle flights and arrival timing."
+    }
+  },
+
+  "lodgingOptions": {
+    "affectsEstimate": false,
+    "purpose": "Lead qualifier only — shapes the options presented, does not alter the displayed estimate",
+    "options": [
+      { "value": "hotel_resort", "label": "Hotel / Resort" },
+      { "value": "motel", "label": "Motel" },
+      { "value": "either", "label": "Either — show me the best value" }
+    ],
+    "note": "No motel supply relationships are documented yet. Keep unpriced until inventory exists."
+  },
+
   "founder": {
     "name": "[Your Full Name]",
     "title": "Destination Travel Specialist | Founder",
@@ -12,14 +86,16 @@
     "credentials": [
       "Host agency affiliation: [pending]",
       "CLIA certification: [pending]",
-      "Seller-of-travel registration: CST #[pending]"
+      "Seller-of-travel registration: CST #[pending], FST #[pending]"
     ]
   },
+
   "contact": {
     "phone": "+1-555-014-7788",
     "email": "quotes@sunsetsailtravel.example",
     "privacyEmail": "privacy@sunsetsailtravel.example",
     "responseTime": "within 1 business day",
+    "responseTimeNote": "48-hour variant disregarded per client instruction — no change required",
     "address": {
       "streetAddress": "400 Harbor Lane, Suite 210",
       "addressLocality": "Tampa",
@@ -28,153 +104,468 @@
       "addressCountry": "US"
     }
   },
+
   "dataHandling": {
     "retentionPeriod": "90 days",
+    "retentionPeriodDays": 90,
     "deletionRequest": "email privacy@sunsetsailtravel.example",
-    "purpose": "Process quote requests and follow up on inquiries"
+    "purpose": "Prepare quotes, respond to inquiries, and follow up on requests; retain for 90 days unless deletion is requested.",
+    "fieldsCollected": [
+      "name", "email", "phone", "departureCity", "interest", "partySize",
+      "preferredDates", "dateFlexibility", "cabinCategory", "airMode",
+      "lodgingPreference", "budgetTier", "travelerInfo", "notes"
+    ],
+    "consentTextTemplate": "I consent to Sunset & Sail Travel storing and using the information I've provided in this form to prepare my quote and follow up with me. I understand my information is retained for {{retention_days}} days and that I can request deletion at any time by emailing {{privacy_email}}.",
+    "consentTokens": {
+      "retention_days": 90,
+      "privacy_email": "privacy@sunsetsailtravel.example"
+    }
   },
-  "bundles": [
+
+  "featuredCruises": [
     {
-      "id": "caribbean-bundle",
-      "schemaId": "https://www.sunsetsailtravel.example/#caribbean-bundle",
-      "name": "7-Night Western Caribbean Cruise Bundle",
+      "id": "carib-7n-oasis",
+      "schemaId": "https://www.sunsetsailtravel.example/#cruise-carib-7n-oasis",
+      "slug": "eastern-caribbean-7-night-oasis",
+      "active": true,
+      "lead": true,
+      "weight": 1,
+      "activeWindow": { "start": "2026-10-02", "end": "2026-12-31" },
+      "line": "Royal Caribbean",
+      "ship": "Oasis of the Seas",
       "nights": 7,
-      "region": "Caribbean",
+      "route": "Eastern Caribbean",
+      "departurePort": "Miami, FL",
       "touristTypes": ["Couples", "Families", "First-time cruisers"],
-      "summary": "Round-trip flights, 1-night pre-cruise hotel with transfers, 7-night cruise to Cozumel, Grand Cayman & Jamaica, rental car, two shore excursion tickets.",
-      "description": "Round-trip air, pre-cruise hotel, ground transfer, car rental, and destination tickets packaged and priced in one quote.",
-      "itinerary": [
-        { "position": 1, "day": "Day 1", "activity": "Fly to Tampa, overnight hotel near port" },
-        { "position": 2, "day": "Days 2–8", "activity": "7-night cruise — Cozumel, Grand Cayman, Jamaica, private island" },
-        { "position": 3, "day": "Day 9", "activity": "Disembark, rental car for post-cruise exploring, evening flight home" }
-      ],
-      "pricing": {
-        "tier": "economy",
-        "minPrice": 1500.00,
-        "maxPrice": 2500.00,
-        "perPerson": true,
-        "priceLabel": "Economy Tier"
+      "summary": "Round-trip air, 1-night pre-cruise hotel with transfers, and 7 nights aboard Oasis of the Seas from Miami.",
+      "image": {
+        "src": "/img/featured/carib-7n-oasis.webp",
+        "alt": "Oasis of the Seas at sea in the Eastern Caribbean at golden hour",
+        "width": 1600,
+        "height": 900,
+        "loading": "eager"
       },
-      "availability": "inStock",
-      "includes": [
-        "Round-trip air",
-        "Pre-cruise hotel",
-        "Port transfers",
-        "Rental car",
-        "2 shore excursion tickets",
-        "Travel insurance"
+      "sailDates": [
+        { "date": "2027-01-17", "label": "Jan 17, 2027" },
+        { "date": "2027-02-14", "label": "Feb 14, 2027" },
+        { "date": "2027-03-07", "label": "Mar 7, 2027" }
       ],
-      "slug": "western-caribbean-7-night",
-      "seoKeywords": ["caribbean cruise", "western caribbean", "cozumel", "grand cayman", "jamaica", "cruise bundle"]
+      "sailDateCount": 3,
+      "badges": ["air_restricted", "best_value"],
+      "airProgram": {
+        "offered": true,
+        "mode": "cruise_line_air",
+        "combinableWithPromo": false,
+        "restrictedGateways": ["MIA", "FLL", "MCO"],
+        "customizationAfterTicketing": false,
+        "note": "Restricted to MIA, FLL, and MCO. Not combinable with current promotions. Customization is unavailable after tickets are issued."
+      },
+      "anchorPrice": {
+        "amount": 1289,
+        "currency": "USD",
+        "per": "person",
+        "basis": {
+          "occupancy": "2_adults",
+          "cabin": "interior",
+          "gateway": "MIA",
+          "airMode": "cruise_line_air",
+          "hotelNights": "1_night",
+          "dateFlexibility": "fixed"
+        },
+        "cruiseOnlyBase": 849,
+        "includes": ["port_expenses", "gov_taxes_fees", "advisor_service_fee"],
+        "includesNote": "Remove 'advisor_service_fee' if no mandatory fee is charged. If a mandatory fee IS charged, it must remain inside this figure.",
+        "excludes": ["gratuities", "optional_excursions", "beverage_packages"],
+        "asOf": "2026-10-02T00:00:00Z",
+        "expires": "2026-10-31T00:00:00Z",
+        "priceValidUntil": "2026-10-31"
+      },
+      "priceAdjustments": {
+        "_basis": "All deltas are relative to anchorPrice.amount. Sum of defaults equals zero.",
+        "homeAirport": {
+          "MIA": 0, "FLL": -40, "MCO": 35, "TPA": 95, "ATL": 145,
+          "ORD": 195, "DEN": 240, "SEA": 330, "LAX": 355
+        },
+        "dateFlexibility": { "fixed": 0, "flex_3_days": -85, "flexible": -150 },
+        "airMode": { "cruise_line_air": 0, "independent_air": -60, "cruise_only": -320 },
+        "cabinCategory": { "interior": 0, "ocean_view": 286, "balcony": 452, "suite": 1420 },
+        "occupancy": { "2_adults": 0, "3_or_4_guests": 190, "solo": 420 },
+        "hotelNights": { "none": -120, "1_night": 0, "2_nights": 110 }
+      },
+      "estimateBreakdownDefault": [
+        { "label": "Base cruise fare (interior, double, from MIA, cruise-only)", "amount": 849 },
+        { "label": "Cruise-line air package", "amount": 320 },
+        { "label": "1 pre-cruise hotel night", "amount": 120 },
+        { "label": "Estimated total, per person", "amount": 1289, "isTotal": true }
+      ],
+      "includes": [
+        "Round-trip air", "1 pre-cruise hotel night", "Port transfers",
+        "7-night cruise cabin", "Travel insurance"
+      ],
+      "seoKeywords": ["eastern caribbean cruise", "oasis of the seas", "miami cruise", "caribbean bundle"]
     },
     {
-      "id": "alaska-bundle",
-      "schemaId": "https://www.sunsetsailtravel.example/#alaska-bundle",
-      "name": "10-Night Alaska Glacier Cruise Bundle",
+      "id": "alaska-10n-norwegian",
+      "schemaId": "https://www.sunsetsailtravel.example/#cruise-alaska-10n-norwegian",
+      "slug": "alaska-glacier-10-night-encore",
+      "active": true,
+      "lead": false,
+      "weight": 2,
+      "activeWindow": { "start": "2026-10-02", "end": "2026-12-31" },
+      "line": "Norwegian Cruise Line",
+      "ship": "Norwegian Encore",
       "nights": 10,
-      "region": "Alaska",
+      "route": "Alaska — Inside Passage & Glacier Bay",
+      "departurePort": "Seattle, WA",
       "touristTypes": ["Nature lovers", "Photography enthusiasts", "Families", "Seniors"],
-      "summary": "Flights to Seattle, pre-cruise hotel, glacier itinerary, Seattle city tour, post-cruise attraction day pass.",
-      "description": "Flights to Seattle, pre-cruise hotel, 10-night Alaska glacier itinerary, city tours, and post-cruise day pass tickets.",
-      "itinerary": [
-        { "position": 1, "day": "Day 1", "activity": "Fly to Seattle, pre-cruise hotel" },
-        { "position": 2, "day": "Days 2–11", "activity": "10-night Alaska glacier cruise — glacier viewing, Inside Passage" },
-        { "position": 3, "day": "Day 12", "activity": "Seattle city tour, post-cruise attraction day pass" }
-      ],
-      "pricing": {
-        "tier": "premium",
-        "minPrice": 2500.00,
-        "maxPrice": 4000.00,
-        "perPerson": true,
-        "priceLabel": "Premium Tier"
+      "summary": "Flights to Seattle, pre-cruise hotel, and 10 nights of glacier viewing through the Inside Passage.",
+      "image": {
+        "src": "/img/featured/alaska-10n-norwegian.webp",
+        "alt": "Norwegian Encore passing a glacier in the Alaska Inside Passage",
+        "width": 800,
+        "height": 450,
+        "loading": "lazy"
       },
-      "availability": "inStock",
-      "includes": [
-        "Round-trip air",
-        "Pre-cruise hotel",
-        "City tour",
-        "Attraction day pass",
-        "Travel insurance"
+      "sailDates": [
+        { "date": "2027-05-22", "label": "May 22, 2027" },
+        { "date": "2027-06-12", "label": "Jun 12, 2027" },
+        { "date": "2027-07-03", "label": "Jul 3, 2027" }
       ],
-      "slug": "alaska-glacier-10-night",
-      "seoKeywords": ["alaska cruise", "glacier cruise", "inside passage", "seattle", "alaska bundle"]
+      "sailDateCount": 3,
+      "badges": ["air_restricted"],
+      "airProgram": {
+        "offered": true,
+        "mode": "cruise_line_air",
+        "combinableWithPromo": true,
+        "restrictedGateways": ["SEA", "PDX", "YVR"],
+        "customizationAfterTicketing": false,
+        "note": "Gateway list limited. Promotion combinability varies by sailing — confirm at quote stage."
+      },
+      "anchorPrice": {
+        "amount": 2390,
+        "currency": "USD",
+        "per": "person",
+        "basis": {
+          "occupancy": "2_adults",
+          "cabin": "interior",
+          "gateway": "SEA",
+          "airMode": "cruise_line_air",
+          "hotelNights": "1_night",
+          "dateFlexibility": "fixed"
+        },
+        "cruiseOnlyBase": 1870,
+        "includes": ["port_expenses", "gov_taxes_fees", "advisor_service_fee"],
+        "includesNote": "Remove 'advisor_service_fee' if no mandatory fee is charged.",
+        "excludes": ["gratuities", "optional_excursions", "beverage_packages"],
+        "asOf": "2026-10-02T00:00:00Z",
+        "expires": "2026-10-31T00:00:00Z",
+        "priceValidUntil": "2026-10-31"
+      },
+      "priceAdjustments": {
+        "_basis": "All deltas are relative to anchorPrice.amount. Sum of defaults equals zero.",
+        "homeAirport": {
+          "SEA": 0, "PDX": 45, "SFO": 165, "LAX": 185, "DEN": 215,
+          "ORD": 265, "JFK": 295, "ATL": 305, "MIA": 385
+        },
+        "dateFlexibility": { "fixed": 0, "flex_3_days": -110, "flexible": -195 },
+        "airMode": { "cruise_line_air": 0, "independent_air": -85, "cruise_only": -380 },
+        "cabinCategory": { "interior": 0, "ocean_view": 340, "balcony": 560, "suite": 1780 },
+        "occupancy": { "2_adults": 0, "3_or_4_guests": 230, "solo": 510 },
+        "hotelNights": { "none": -140, "1_night": 0, "2_nights": 132 }
+      },
+      "estimateBreakdownDefault": [
+        { "label": "Base cruise fare (interior, double, from SEA, cruise-only)", "amount": 1870 },
+        { "label": "Cruise-line air package", "amount": 380 },
+        { "label": "1 pre-cruise hotel night", "amount": 140 },
+        { "label": "Estimated total, per person", "amount": 2390, "isTotal": true }
+      ],
+      "includes": [
+        "Round-trip air", "1 pre-cruise hotel night", "Port transfers",
+        "10-night cruise cabin", "Travel insurance"
+      ],
+      "seoKeywords": ["alaska cruise", "glacier bay", "inside passage", "seattle cruise", "alaska bundle"]
     },
     {
-      "id": "mediterranean-bundle",
-      "schemaId": "https://www.sunsetsailtravel.example/#mediterranean-bundle",
-      "name": "12-Night Mediterranean Grand Tour Bundle",
+      "id": "med-12n-valiant",
+      "schemaId": "https://www.sunsetsailtravel.example/#cruise-med-12n-valiant",
+      "slug": "mediterranean-grand-tour-12-night-valiant",
+      "active": true,
+      "lead": false,
+      "weight": 3,
+      "activeWindow": { "start": "2026-10-02", "end": "2026-12-31" },
+      "line": "Virgin Voyages",
+      "ship": "Valiant Lady",
       "nights": 12,
-      "region": "Mediterranean",
+      "route": "Mediterranean Grand Tour",
+      "departurePort": "Barcelona, Spain",
       "touristTypes": ["Luxury travelers", "History buffs", "Culture enthusiasts", "Honeymooners"],
-      "summary": "Flights to Barcelona, 2-night pre-cruise hotel, 12-night cruise, rail pass, skip-the-line tickets.",
-      "description": "Flights to Barcelona, 2-night pre-cruise hotel, 12-night Mediterranean cruise, rail passes, and skip-the-line attraction tickets.",
-      "itinerary": [
-        { "position": 1, "day": "Day 1–2", "activity": "Fly to Barcelona, 2-night pre-cruise hotel" },
-        { "position": 2, "day": "Days 3–14", "activity": "12-night Mediterranean cruise — Barcelona, Marseille, Florence, Rome, Naples" },
-        { "position": 3, "day": "Day 15", "activity": "Disembark, rail pass continues exploration" }
-      ],
-      "pricing": {
-        "tier": "luxury",
-        "minPrice": 4000.00,
-        "maxPrice": 9999.99,
-        "perPerson": true,
-        "priceLabel": "Luxury Tier"
+      "summary": "Flights to Barcelona, 2-night pre-cruise hotel, and 12 nights across the Mediterranean.",
+      "image": {
+        "src": "/img/featured/med-12n-valiant.webp",
+        "alt": "Valiant Lady docked in Barcelona harbour at sunrise",
+        "width": 800,
+        "height": 450,
+        "loading": "lazy"
       },
-      "availability": "limitedAvailability",
-      "includes": [
-        "Round-trip air",
-        "2 hotel nights",
-        "Rail pass",
-        "Attraction tickets",
-        "Travel insurance"
+      "sailDates": [
+        { "date": "2027-04-18", "label": "Apr 18, 2027" },
+        { "date": "2027-05-09", "label": "May 9, 2027" }
       ],
-      "slug": "mediterranean-grand-tour-12-night",
-      "seoKeywords": ["mediterranean cruise", "barcelona", "italy", "france", "luxury cruise", "rail pass"]
+      "sailDateCount": 2,
+      "badges": ["limited"],
+      "airProgram": {
+        "offered": true,
+        "mode": "cruise_line_air",
+        "combinableWithPromo": false,
+        "restrictedGateways": ["JFK", "EWR", "BOS", "IAD"],
+        "customizationAfterTicketing": false,
+        "note": "Transatlantic routing. Gateway list narrow; independent air may price better from secondary airports."
+      },
+      "anchorPrice": {
+        "amount": 3940,
+        "currency": "USD",
+        "per": "person",
+        "basis": {
+          "occupancy": "2_adults",
+          "cabin": "interior",
+          "gateway": "JFK",
+          "airMode": "cruise_line_air",
+          "hotelNights": "2_nights",
+          "dateFlexibility": "fixed"
+        },
+        "cruiseOnlyBase": 3080,
+        "includes": ["port_expenses", "gov_taxes_fees", "advisor_service_fee"],
+        "includesNote": "Remove 'advisor_service_fee' if no mandatory fee is charged.",
+        "excludes": ["gratuities", "optional_excursions", "beverage_packages"],
+        "asOf": "2026-10-02T00:00:00Z",
+        "expires": "2026-10-31T00:00:00Z",
+        "priceValidUntil": "2026-10-31",
+        "ceilingPolicy": "OPEN-ENDED — no highPrice asserted. Revert to a capped ceiling only if one will be honoured."
+      },
+      "priceAdjustments": {
+        "_basis": "All deltas are relative to anchorPrice.amount. Sum of defaults equals zero.",
+        "homeAirport": {
+          "JFK": 0, "EWR": 25, "BOS": 55, "IAD": 70, "ORD": 115,
+          "ATL": 140, "MIA": 175, "DFW": 205, "SEA": 275, "LAX": 290
+        },
+        "dateFlexibility": { "fixed": 0, "flex_3_days": -140, "flexible": -240 },
+        "airMode": { "cruise_line_air": 0, "independent_air": -120, "cruise_only": -620 },
+        "cabinCategory": { "interior": 0, "ocean_view": 410, "balcony": 690, "suite": 2240 },
+        "occupancy": { "2_adults": 0, "3_or_4_guests": 280, "solo": 680 },
+        "hotelNights": { "none": -200, "1_night": -100, "2_nights": 0 }
+      },
+      "estimateBreakdownDefault": [
+        { "label": "Base cruise fare (interior, double, from JFK, cruise-only)", "amount": 3080 },
+        { "label": "Cruise-line air package", "amount": 660 },
+        { "label": "2 pre-cruise hotel nights", "amount": 200 },
+        { "label": "Estimated total, per person", "amount": 3940, "isTotal": true }
+      ],
+      "includes": [
+        "Round-trip air", "2 pre-cruise hotel nights", "Port transfers",
+        "12-night cruise cabin", "Travel insurance"
+      ],
+      "seoKeywords": ["mediterranean cruise", "barcelona cruise", "virgin voyages", "grand tour", "luxury cruise"]
     }
   ],
-  "faq": [
+
+  "hotelAirBundles": [
     {
-      "id": "faq-q1",
-      "question": "Can I book just the cruise and add flights later?",
-      "answer": "Yes. We can lock in a cruise cabin now and add air, hotel, and transfers whenever your plans are firm — though bundling early typically saves 10–20% versus booking separately."
+      "id": "hotel-air-city",
+      "name": "City Stay + Air",
+      "summary": "Flights and a downtown hotel, bundled. Ideal for a long weekend or a pre-cruise night in the embarkation city.",
+      "fromPrice": 740,
+      "currency": "USD",
+      "per": "person",
+      "ctaLabel": "Maximize my savings",
+      "presetInterest": "hotel-air-city",
+      "asOf": "2026-10-02T00:00:00Z",
+      "expires": "2026-10-31T00:00:00Z"
     },
     {
-      "id": "faq-q2",
-      "question": "Do you handle flights from smaller cities?",
-      "answer": "Yes. We book from virtually any U.S. or Canadian departure airport, including regional airports, and we can arrange overnight connections to guarantee you arrive a day early."
+      "id": "hotel-air-precruise",
+      "name": "Pre-Cruise Hotel + Air",
+      "summary": "Arrive a day early, rested and unrushed — with transfers timed to your sailing so nothing is left to chance.",
+      "fromPrice": 890,
+      "currency": "USD",
+      "per": "person",
+      "ctaLabel": "Maximize my savings",
+      "presetInterest": "hotel-air-precruise",
+      "asOf": "2026-10-02T00:00:00Z",
+      "expires": "2026-10-31T00:00:00Z"
     },
     {
-      "id": "faq-q3",
-      "question": "What happens if my flight is delayed and I miss the ship?",
-      "answer": "Because we bundle air with the cruise line, protected-airfare programs can rebook you to the next port at little or no cost. We also recommend arriving a day early — and we price that hotel night into your bundle."
-    },
-    {
-      "id": "faq-q4",
-      "question": "How far in advance should I book?",
-      "answer": "For cruises, 6–12 months ahead gets the best cabin selection and group rates. Caribbean and Alaska peak-season sailings often sell out of bundled air allocations 4–6 months out."
+      "id": "hotel-air-land",
+      "name": "Land Escape + Air",
+      "summary": "No ship required. Flights plus accommodation for an inland or coastal getaway, with tickets arranged where you want them.",
+      "fromPrice": 610,
+      "currency": "USD",
+      "per": "person",
+      "ctaLabel": "Maximize my savings",
+      "presetInterest": "hotel-air-land",
+      "asOf": "2026-10-02T00:00:00Z",
+      "expires": "2026-10-31T00:00:00Z"
     }
   ],
-  "aiCapabilities": [
-    {
-      "name": "list_bundles",
-      "method": "GET",
-      "endpoint": "/v1/bundles",
-      "auth": "none",
-      "description": "Returns all active vacation bundles"
-    },
-    {
-      "name": "get_bundle",
-      "method": "GET",
-      "endpoint": "/v1/bundles/{id}",
-      "auth": "none",
-      "description": "Returns detailed info for a specific bundle"
-    },
-    {
-      "name": "request_quote",
-      "method": "POST",
-      "endpoint": "/v1/quote-requests",
-      "auth": "none",
-      "description": "Submits a new quote request for review"
+
+  "bundles": {
+    "status": "legacy-pending-removal",
+    "displayEnabled": false,
+    "displayNote": "Retained per client instruction ('leave as is for now'). Display disabled because tiered budget ranges contradict the anchor-price model — rendering both would present two incompatible pricing stories on one page. Set displayEnabled true only if the bundle concept returns.",
+    "items": [
+      {
+        "id": "caribbean-bundle",
+        "schemaId": "https://www.sunsetsailtravel.example/#caribbean-bundle",
+        "name": "7-Night Western Caribbean Cruise Bundle",
+        "nights": 7,
+        "region": "Caribbean",
+        "touristTypes": ["Couples", "Families", "First-time cruisers"],
+        "summary": "Round-trip flights, 1-night pre-cruise hotel with transfers, 7-night cruise to Cozumel, Grand Cayman & Jamaica, rental car, two shore excursion tickets.",
+        "pricing": {
+          "tier": "economy",
+          "minPrice": 1500.00,
+          "maxPrice": 2500.00,
+          "perPerson": true,
+          "priceLabel": "Economy Tier"
+        },
+        "availability": "inStock",
+        "asOf": "2026-10-02T00:00:00Z",
+        "expires": "2026-10-31T00:00:00Z",
+        "includes": ["Round-trip air", "Pre-cruise hotel", "Port transfers", "Rental car", "2 shore excursion tickets", "Travel insurance"],
+        "slug": "western-caribbean-7-night",
+        "seoKeywords": ["caribbean cruise", "western caribbean", "cozumel", "grand cayman", "jamaica", "cruise bundle"]
+      },
+      {
+        "id": "alaska-bundle",
+        "schemaId": "https://www.sunsetsailtravel.example/#alaska-bundle",
+        "name": "10-Night Alaska Glacier Cruise Bundle",
+        "nights": 10,
+        "region": "Alaska",
+        "touristTypes": ["Nature lovers", "Photography enthusiasts", "Families", "Seniors"],
+        "summary": "Flights to Seattle, pre-cruise hotel, glacier itinerary, Seattle city tour, post-cruise attraction day pass.",
+        "pricing": {
+          "tier": "premium",
+          "minPrice": 2500.00,
+          "maxPrice": 4000.00,
+          "perPerson": true,
+          "priceLabel": "Premium Tier"
+        },
+        "availability": "inStock",
+        "asOf": "2026-10-02T00:00:00Z",
+        "expires": "2026-10-31T00:00:00Z",
+        "includes": ["Round-trip air", "Pre-cruise hotel", "City tour", "Attraction day pass", "Travel insurance"],
+        "slug": "alaska-glacier-10-night",
+        "seoKeywords": ["alaska cruise", "glacier cruise", "inside passage", "seattle", "alaska bundle"]
+      },
+      {
+        "id": "mediterranean-bundle",
+        "schemaId": "https://www.sunsetsailtravel.example/#mediterranean-bundle",
+        "name": "12-Night Mediterranean Grand Tour Bundle",
+        "nights": 12,
+        "region": "Mediterranean",
+        "touristTypes": ["Luxury travelers", "History buffs", "Culture enthusiasts", "Honeymooners"],
+        "summary": "Flights to Barcelona, 2-night pre-cruise hotel, 12-night cruise, rail pass, skip-the-line tickets.",
+        "pricing": {
+          "tier": "luxury",
+          "minPrice": 4000.00,
+          "maxPrice": 9999.00,
+          "perPerson": true,
+          "priceLabel": "Luxury Tier",
+          "ceilingNote": "Previously '9999.99+' — unparseable suffix removed. Prefer open-ended (omit maxPrice) if no ceiling will be honoured."
+        },
+        "availability": "limitedAvailability",
+        "asOf": "2026-10-02T00:00:00Z",
+        "expires": "2026-10-31T00:00:00Z",
+        "includes": ["Round-trip air", "2 hotel nights", "Rail pass", "Attraction tickets", "Travel insurance"],
+        "slug": "mediterranean-grand-tour-12-night",
+        "seoKeywords": ["mediterranean cruise", "barcelona", "italy", "france", "luxury cruise", "rail pass"]
+      }
+    ]
+  },
+
+  "faq": {
+    "sourceOfTruth": "This array is the ONLY place FAQ text lives. build.js renders it twice — visible <details> HTML and JSON-LD FAQPage — with identical full text. Do not add a shortened variant field.",
+    "items": [
+      {
+        "id": "faq-q1",
+        "question": "Can I book just the cruise and add flights later?",
+        "answer": "Yes. We can lock in a cruise cabin now and add air, hotel, and transfers whenever your plans are firm — though bundling early typically saves 10–20% versus booking separately."
+      },
+      {
+        "id": "faq-q2",
+        "question": "Do you handle flights from smaller cities?",
+        "answer": "Yes. We book from most major U.S. and Canadian airports as well as many regional ones, and we can arrange overnight connections to guarantee you arrive a day early."
+      },
+      {
+        "id": "faq-q3",
+        "question": "What happens if my flight is delayed and I miss the ship?",
+        "answer": "Because we bundle air with the cruise line, protected-airfare programs can rebook you to the next port at little or no cost, subject to the program's terms. We also recommend arriving a day early — and we price that hotel night into your bundle."
+      },
+      {
+        "id": "faq-q4",
+        "question": "How far in advance should I book?",
+        "answer": "For cruises, 6–12 months ahead gets the best cabin selection and group rates. Caribbean and Alaska peak-season sailings often sell out of bundled air allocations 4–6 months out."
+      },
+      {
+        "id": "faq-q5",
+        "question": "Why does the price change when I pick my airport?",
+        "answer": "Airfare is the largest variable in any bundle. Where you fly from, how flexible your dates are, and whether the cruise line's air program covers your gateway all shift the total. The price you see is a live estimate built from your selections; your written offer confirms it."
+      }
+    ],
+    "claimsReview": {
+      "unsubstantiated": [
+        "faq-q1 — '10–20% versus booking separately' is an unsupported statistic and conflicts with media-kit brand_voice.avoid (no discount claims). Replace with a directional statement or cite a source.",
+        "faq-q4 — 'sell out of bundled air allocations 4–6 months out' needs sourcing."
+      ],
+      "softened": [
+        "faq-q2 — 'virtually any' changed to 'most major … as well as many regional'.",
+        "faq-q3 — 'little or no cost' now attributed to program terms."
+      ]
     }
+  },
+
+  "aiCapabilities": {
+    "discoveryPath": "/ai.json",
+    "discoveryPathNote": "RESOLVED — /ai.json at root is canonical. media-kit.json previously referenced /.well-known/ai; corrected.",
+    "dataFreshness": {
+      "priceDataAsOf": "2026-10-02T00:00:00Z",
+      "priceDataValidTo": "2026-10-31T00:00:00Z",
+      "refreshCadenceDays": 14,
+      "staleResponseField": "price_stale"
+    },
+    "capabilities": [
+      {
+        "name": "list_bundles",
+        "method": "GET",
+        "endpoint": "/v1/bundles",
+        "auth": "none",
+        "description": "Returns all active featured cruises and hotel+air bundles",
+        "returns": ["anchorPrice", "priceValidUntil", "price_stale", "priceAdjustments", "airProgram"]
+      },
+      {
+        "name": "get_bundle",
+        "method": "GET",
+        "endpoint": "/v1/bundles/{id}",
+        "auth": "none",
+        "description": "Returns detailed info for a specific featured cruise or hotel+air bundle",
+        "returns": ["anchorPrice", "priceValidUntil", "price_stale", "priceAdjustments", "sailDates", "airProgram"]
+      },
+      {
+        "name": "request_quote",
+        "method": "POST",
+        "endpoint": "/v1/quote-requests",
+        "auth": "none",
+        "description": "Submits a new quote request for advisor review",
+        "responseTime": "≤1 business day",
+        "snapshotFields": ["anchorAmount", "anchorAsOf", "anchorExpires", "selectedPreferences"]
+      }
+    ]
+  },
+
+  "complianceOpenItems": [
+    "Florida seller-of-travel registration — Tampa business address triggers FDACS requirement unless exempt",
+    "Host-agency Statement of Exemption route reportedly prohibits charging service or consultation fees",
+    "California drip pricing — mandatory fees must sit inside the advertised price; government-imposed taxes and fees may be excluded",
+    "Supplier photography and trademark rights verification with host agency",
+    "Whether an advisor service fee is mandatory — determines anchor composition and exemption eligibility"
   ]
 }

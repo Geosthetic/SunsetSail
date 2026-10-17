@@ -1,9 +1,27 @@
 /* ============================================================
    Sunset & Sail Travel — style.css
+   Version: 3.1  ·  2026-10-17
    Palette: Sand & Sea palette theme
    Optimized for: Firefox (primary) · Chrome/Edge · Safari · all
+
+   CHANGELOG v3.0 → v3.1
+   - ADDED: Featured Cruises module (cards, media, facts, carousel)
+   - ADDED: 5-state badge taxonomy (air included/restricted/none,
+            best value, limited)
+   - ADDED: Price block with as-of / valid-through / stale states
+   - ADDED: Preference fieldset + estimate breakdown components
+   - ADDED: Hotel + Air bundle grid
+   - ADDED: Lodging preference segmented control
+   - ADDED: Spacing token scale, sr-only utility, semantic status colors
+   - FIXED: Print block no longer blanks the page when checklist closed
+   - FIXED: Merged duplicate prefers-reduced-motion blocks
+   - FIXED: Undefined --space-lg reference in .about-grid
+   - FIXED: #formStatus contrast failure
+   - DEPRECATED: .bundle-* tiered-range styles (legacy, displayEnabled:false)
    ============================================================ */
+
 :root {
+  /* ---- Brand palette ---- */
   --sand-primary: #d4a373;
   --sand-secondary: #ccd5ae;
   --sand-light: #fefae0;
@@ -11,8 +29,45 @@
   --sand-navy: #0b2545;
   --sand-accent: #e76f51;
   --sand-dark: #1c2430;
+
+  /* ---- Semantic status (NEW) ---- */
+  --status-success: #2e7d32;
+  --status-error: #b3261e;
+  --status-warning: #b45309;
+  --status-info: var(--sand-navy);
+
+  /* ---- Surfaces ---- */
+  --surface: #ffffff;
+  --surface-alt: var(--sand-light);
+  --border-subtle: #c9d4e3;
+  --border-strong: rgba(11, 37, 69, 0.28);
+
+  /* ---- Spacing scale (NEW — used by new components only) ---- */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* ---- Radii / elevation ---- */
   --radius: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
   --shadow: 0 4px 18px rgba(11, 37, 69, 0.10);
+  --shadow-raised: 0 6px 22px rgba(11, 37, 69, 0.14);
+
+  /* ---- Motion ---- */
+  --ease: 0.2s ease;
+  --ease-slow: 0.35s ease;
+
+  /* ---- Layering ---- */
+  --z-sticky: 10;
+  --z-drawer: 60;
+  --z-overlay: 70;
+  --z-panel: 71;
+
   --font: system-ui, -apple-system, "Segoe UI", Roboto,
           "Helvetica Neue", Arial, sans-serif;
   color-scheme: light;
@@ -45,6 +100,19 @@ img { max-width: 100%; display: block; }
 
 .container { width: min(1080px, 92%); margin-inline: auto; }
 
+/* ---------- Screen-reader-only utility (NEW) ---------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---------- Selection (FF + standard; -webkit for Safari/Chrome) ---------- */
 ::selection { background: var(--sand-primary); color: #fff; }
 ::-moz-selection { background: var(--sand-primary); color: #fff; }
@@ -55,7 +123,7 @@ img { max-width: 100%; display: block; }
   color: #fff;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--z-sticky);
   /* FF-only scrollbar gutter shift prevention on scroll-locking pages */
   scrollbar-gutter: stable;
 }
@@ -76,18 +144,36 @@ nav a:hover { color: #fff; }
 .btn {
   display: inline-block;
   padding: 0.55rem 1.3rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   text-decoration: none;
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background var(--ease);
 }
 .btn-primary { background: var(--sand-primary); color: #fff; }
 .btn-primary:hover { background: var(--sand-accent); }
 .btn-lg { font-size: 1.05rem; padding: 0.75rem 1.6rem; }
 .btn-secondary { background: var(--sand-secondary); color: #000; font-size: 0.9rem; }
 .btn-secondary:hover { background: var(--sand-primary); }
+
+/* Outline variant — used by carousel controls (NEW) */
+.btn-outline {
+  background: transparent;
+  color: var(--sand-navy);
+  border: 2px solid var(--sand-navy);
+}
+.btn-outline:hover { background: var(--sand-navy); color: #fff; }
+
+/* Full-width CTA inside cruise cards (NEW) */
+.btn-block { display: block; width: 100%; text-align: center; }
+
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 /* ---------- Keyboard focus (Firefox :focus-visible + fallback) ---------- */
 .btn:focus,
@@ -103,17 +189,27 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-/* ---------- Hero ---------- */
-.hero {
+/* ---------- Hero band ----------
+   Slim h1 band retained above the Featured Cruises module so the page
+   keeps its only <h1> (accessibility + SEO). `.hero` and `.hero-band`
+   are aliased — pick one in the markup before launch. */
+.hero,
+.hero-band {
   background: var(--sand-secondary); /* flat fallback pre-gradient paint */
   background: linear-gradient(160deg, var(--sand-navy) 0%, var(--sand-primary) 100%);
   color: #fff;
   text-align: center;
-  padding: 5rem 0 4rem;
+  padding: 3.5rem 0 3rem;
 }
-.hero h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); max-width: 18ch; margin-inline: auto; }
-.hero .lede { max-width: 60ch; margin: 1rem auto 1.6rem; opacity: 0.92; }
-.microcopy { font-size: 0.8rem; margin-top: 0.8rem; opacity: 0.7; }
+.hero h1,
+.hero-band h1 {
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  max-width: 18ch;
+  margin-inline: auto;
+}
+.hero .lede,
+.hero-band .lede { max-width: 60ch; margin: 1rem auto 1.6rem; opacity: 0.92; }
+.microcopy { font-size: 0.8rem; margin-top: 0.8rem; opacity: 0.78; }
 
 /* ---------- sections ---------- */
 .section { padding: 3.5rem 0; }
@@ -125,6 +221,429 @@ a:focus-visible {
   text-align: center;
 }
 
+/* Centred supporting copy under a section heading (NEW) */
+.section-intro {
+  max-width: 62ch;
+  margin: 0 auto 2rem;
+  text-align: center;
+  color: rgba(11, 37, 69, 0.78);
+}
+
+/* ============================================================
+   FEATURED CRUISES MODULE  (NEW)
+   Replaces the full-height hero. One lead card + 3-up row on
+   desktop; swipeable single column on mobile.
+   ============================================================ */
+.featured-cruises { background: var(--sand-background); }
+
+.cruise-carousel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+  margin-top: 1.5rem;
+}
+
+/* Lead card spans the full row and sits first */
+.cruise-carousel .cruise-card--lead {
+  grid-column: 1 / -1;
+  order: -1;
+}
+
+.cruise-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--ease), box-shadow var(--ease);
+}
+.cruise-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-raised);
+}
+.cruise-card--lead {
+  outline: 2px solid var(--sand-primary);
+  outline-offset: -2px;
+}
+
+/* Media */
+.cruise-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--sand-secondary); /* placeholder colour pre-image-load */
+}
+.cruise-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Badge stack overlaid top-left of the image */
+.cruise-badges {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.cruise-body {
+  padding: 1.2rem 1.3rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.cruise-line {
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(11, 37, 69, 0.66);
+  margin-bottom: 0.2rem;
+}
+.cruise-title {
+  color: var(--sand-navy);
+  font-size: 1.15rem;
+  line-height: 1.35;
+  margin-bottom: 0.9rem;
+}
+
+/* Facts row: sail date / duration / departure port */
+.cruise-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+  font-size: 0.85rem;
+}
+.cruise-facts dt {
+  font-weight: 700;
+  color: var(--sand-navy);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.15rem;
+}
+.cruise-facts dd { color: rgba(11, 37, 69, 0.78); }
+
+/* ---------- Price block ---------- */
+.cruise-price-block { margin-bottom: 0.9rem; }
+
+.price-from {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.25rem;
+}
+.price-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(11, 37, 69, 0.66);
+}
+.price-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--sand-accent);
+  font-variant-numeric: tabular-nums;
+}
+.price-unit {
+  font-size: 0.85rem;
+  color: rgba(11, 37, 69, 0.66);
+}
+
+/* Freshness microcopy: "Prices as of …" / "Valid through …" */
+.price-validity {
+  font-size: 0.74rem;
+  color: rgba(11, 37, 69, 0.62);
+  margin-top: 0.15rem;
+}
+
+/* Expired state — figure is withdrawn, CTA swaps to "Request current pricing" */
+.price-stale {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--status-warning);
+  margin-top: 0.15rem;
+}
+.cruise-card.is-stale .price-amount,
+.cruise-card.is-stale .price-label,
+.cruise-card.is-stale .price-unit { display: none; }
+.cruise-card.is-stale .cruise-media { filter: saturate(0.7); }
+
+/* ---------- Preference fieldset ---------- */
+.cruise-toggle { margin-bottom: 0.7rem; }
+
+.cruise-preferences {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--sand-light);
+  padding: 0.9rem 1rem 0.4rem;
+  margin-bottom: 0.9rem;
+}
+.cruise-preferences legend {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--sand-navy);
+  padding-inline: 0.35rem;
+}
+.cruise-preferences label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.82rem;
+  margin-bottom: 0.25rem;
+  color: var(--sand-navy);
+}
+.cruise-preferences select {
+  width: 100%;
+  margin-bottom: 0.8rem;
+  background: var(--surface);
+}
+
+/* Small helper text under a control */
+.field-note {
+  font-size: 0.74rem;
+  color: rgba(11, 37, 69, 0.68);
+  margin: -0.5rem 0 0.8rem;
+}
+
+/* ---------- Estimate breakdown ---------- */
+.estimate-breakdown {
+  background: var(--sand-light);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.9rem;
+}
+.estimate-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.87rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px dashed var(--border-subtle);
+}
+.estimate-line:last-of-type { border-bottom: none; }
+.estimate-line .estimate-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.estimate-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 2px solid var(--sand-primary);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--sand-navy);
+}
+.estimate-total .estimate-value {
+  color: var(--sand-accent);
+  font-variant-numeric: tabular-nums;
+}
+.estimate-caveat {
+  font-size: 0.73rem;
+  font-style: italic;
+  color: rgba(11, 37, 69, 0.68);
+  margin-top: 0.5rem;
+}
+
+/* Running estimate announced politely to screen readers */
+[aria-live="polite"].estimate-breakdown { /* no visual change intended */ }
+
+.cruise-cta { margin-top: auto; }
+
+/* ---------- Carousel controls ---------- */
+.carousel-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+/* ---------- Disclosures / no-JS fallback ---------- */
+.disclosure {
+  max-width: 68ch;
+  margin: 2rem auto 0;
+  text-align: center;
+  font-size: 0.76rem;
+  color: rgba(11, 37, 69, 0.7);
+}
+.noscript-note {
+  background: var(--sand-light);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.2rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(11, 37, 69, 0.8);
+}
+
+/* ---------- Featured cruises: responsive ---------- */
+@media (max-width: 900px) {
+  .cruise-carousel { grid-template-columns: repeat(2, 1fr); }
+  .cruise-carousel .cruise-card--lead { grid-column: 1 / -1; }
+}
+
+@media (max-width: 720px) {
+  /* Single column with horizontal snap-scroll — swipeable on touch */
+  .cruise-carousel {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 86%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.6rem;
+    /* FF: thin scrollbar instead of the chunky default */
+    scrollbar-width: thin;
+    scrollbar-color: var(--sand-primary) transparent;
+  }
+  .cruise-carousel .cruise-card--lead { grid-column: auto; }
+  .cruise-card { scroll-snap-align: center; }
+  .cruise-card:hover { transform: none; } /* no hover lift on touch */
+  .cruise-facts { grid-template-columns: 1fr 1fr; }
+  .carousel-controls { flex-direction: column; }
+  .carousel-controls .btn { width: 100%; text-align: center; }
+}
+
+/* ============================================================
+   BADGE TAXONOMY  (NEW)
+   Canonical names mirror bundles.json → badgeTaxonomy:
+     air_included · air_restricted · air_none · best_value · limited
+   Short aliases (.badge-air, .badge-value) retained for the v3.0
+   markup — collapse to one set before launch.
+   ============================================================ */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Air included — strongest signal, solid navy */
+.badge-air-included,
+.badge-air {
+  background: var(--sand-navy);
+  color: #fff;
+}
+
+/* Air available but gateway-restricted — outlined, quieter */
+.badge-air-restricted {
+  background: rgba(212, 163, 115, 0.18);
+  color: #8a5a2b;
+  border: 1px solid var(--sand-primary);
+}
+
+/* Cruise-only — neutral, no promise implied */
+.badge-air-none {
+  background: rgba(204, 213, 174, 0.45);
+  color: #45532a;
+  border: 1px solid var(--sand-secondary);
+}
+
+/* Best value — the merchandising highlight */
+.badge-best-value,
+.badge-value {
+  background: var(--sand-accent);
+  color: #fff;
+}
+
+/* Limited availability */
+.badge-limited {
+  background: #ffe3de;
+  color: var(--sand-accent);
+}
+
+/* ============================================================
+   HOTEL + AIR BUNDLES  (NEW)
+   ============================================================ */
+#hotel-air { background: var(--sand-light); }
+
+.hotel-air-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.4rem;
+  margin: 1.5rem 0;
+}
+.hotel-air-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1.4rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.hotel-air-card h3 { color: var(--sand-navy); font-size: 1.1rem; }
+.hotel-air-card p { font-size: 0.9rem; color: rgba(11, 37, 69, 0.78); }
+.hotel-air-card .price-from { justify-content: center; }
+.hotel-air-card .cruise-cta { margin-top: auto; }
+
+/* ============================================================
+   LODGING PREFERENCE — segmented control  (NEW)
+   Qualifier only: affectsEstimate is false in bundles.json, so
+   nothing here implies a price change.
+   ============================================================ */
+.lodging-preference {
+  background: var(--sand-light);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.3rem;
+  margin: 2rem 0;
+}
+.lodging-preference legend {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sand-navy);
+  padding-inline: 0.4rem;
+}
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.segmented label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.95rem;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--ease), background var(--ease);
+}
+.segmented label:hover { border-color: var(--sand-primary); }
+.segmented input[type="radio"] {
+  accent-color: var(--sand-primary);
+  width: auto;
+  margin: 0;
+}
+/* Selected state — :has() where supported, JS fallback class elsewhere */
+.segmented label:has(input[type="radio"]:checked) {
+  border-color: var(--sand-primary);
+  background: rgba(212, 163, 115, 0.14);
+  font-weight: 700;
+}
+.segmented label.is-checked {
+  border-color: var(--sand-primary);
+  background: rgba(212, 163, 115, 0.14);
+  font-weight: 700;
+}
+
 /* ---------- Includes grid ---------- */
 .includes-grid {
   list-style: none;
@@ -134,21 +653,29 @@ a:focus-visible {
   padding: 0;
 }
 .includes-grid li {
-  background: #fff;
+  background: var(--surface);
   border-radius: var(--radius);
   padding: 1rem 1.2rem;
   box-shadow: 0 2px 8px rgba(11, 37, 69, 0.08);
   font-size: 0.95rem;
 }
+.includes-grid strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--sand-navy);
+}
 
-/* ---------- Bundles ---------- */
+/* ---------- Bundles (LEGACY — tiered ranges retired) ----------
+   Retained only so the displayEnabled:false legacy records render
+   inertly if ever surfaced. Do not extend. Superseded by
+   .cruise-card and .hotel-air-card. */
 .bundle-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
   gap: 1.4rem;
 }
 .bundle-card {
-  background: #fff;
+  background: var(--surface);
   border-radius: var(--radius);
   padding: 1.5rem;
   box-shadow: 0 6px 22px rgba(11, 37, 69, 0.10);
@@ -159,14 +686,6 @@ a:focus-visible {
 .bundle-card h3 { color: var(--sand-navy); font-size: 1.15rem; }
 .bundle-card .price span { color: var(--sand-accent); font-size: 1.35rem; font-weight: 700; }
 .bundle-includes { padding-left: 1.1rem; font-size: 0.88rem; }
-.badge {
-  display: inline-block;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-.badge-limited { background: #ffe3de; color: var(--sand-accent); }
 
 /* ---------- Process ---------- */
 .process-list { padding-left: 1.3rem; max-width: 640px; margin-inline: auto; }
@@ -176,7 +695,7 @@ a:focus-visible {
 .about-grid {
   display: grid;
   grid-template-columns: minmax(220px, 320px) 1fr;
-  gap: var(--space-lg, 2rem);
+  gap: 2rem; /* was var(--space-lg, 2rem) — token never existed; pinned */
   align-items: start;
 }
 
@@ -200,7 +719,7 @@ a:focus-visible {
 }
 
 .about-title {
-  color: var(--sand-secondary);
+  color: #6b7355; /* darkened from --sand-secondary for legibility */
   font-weight: 600;
 }
 
@@ -221,7 +740,7 @@ a:focus-visible {
 
 /* ---------- FAQ (native <details> — FF + WebKit marker reset) ---------- */
 details {
-  background: #fff;
+  background: var(--surface);
   border-radius: var(--radius);
   padding: 0.9rem 1.2rem;
   margin-bottom: 0.7rem;
@@ -247,10 +766,10 @@ label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3r
 input, select, textarea {
   width: 100%;
   padding: 0.6rem 0.75rem;
-  border: 1px solid #c9d4e3;
-  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   font: inherit;
-  background: #fff;
+  background: var(--surface);
 }
 /* Firefox paints its own focus ring on inputs — normalize it */
 input:focus-visible, select:focus-visible, textarea:focus-visible {
@@ -271,7 +790,36 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 /* FF gives textarea a resize handle; keep it but cap */
 textarea { resize: vertical; }
-#formStatus { margin-top: 0.8rem; font-weight: 600; color: var(--sand-secondary); }
+
+/* Consent block — tokenised text injected by build.js */
+.privacy-consent {
+  background: var(--sand-light);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1rem;
+}
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.88rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+.checkbox-label input {
+  flex: 0 0 auto;
+  width: auto;
+  margin-top: 0.25rem;
+  accent-color: var(--sand-primary);
+}
+
+/* Status messaging — was --sand-secondary (≈1.4:1, invisible) */
+#formStatus {
+  margin-top: 0.8rem;
+  font-weight: 600;
+  color: var(--status-info);
+}
+#formStatus.success { color: var(--status-success); }
+#formStatus.error { color: var(--status-error); }
 
 /* ---------- Footer ---------- */
 .site-footer {
@@ -287,7 +835,7 @@ textarea { resize: vertical; }
 
 @media (max-width: 640px) {
   nav { width: 100%; justify-content: center; }
-  .hero { padding: 3.5rem 0; }
+  .hero, .hero-band { padding: 2.5rem 0; }
 }
 
 /* ============================================================
@@ -297,10 +845,10 @@ textarea { resize: vertical; }
   position: fixed;
   bottom: 1.2rem;
   right: 1.2rem;
-  z-index: 60;
+  z-index: var(--z-drawer);
   padding: 0.7rem 1.2rem;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--sand-primary);
   color: #fff;
   font: inherit;
@@ -314,9 +862,9 @@ textarea { resize: vertical; }
   position: fixed;
   inset: 0;
   background: rgba(11, 37, 69, 0.45);
-  z-index: 70;
+  z-index: var(--z-overlay);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--ease-slow);
 }
 .pack-overlay.show { opacity: 1; }
 
@@ -326,12 +874,12 @@ textarea { resize: vertical; }
   right: 0;
   height: 100vh;
   width: min(560px, 94vw);
-  z-index: 71;
-  background: #fff;
+  z-index: var(--z-panel);
+  background: var(--surface);
   box-shadow: -6px 0 28px rgba(11, 37, 69, 0.25);
   display: flex;                 /* toolbar rail | main column */
   transform: translateX(110%);
-  transition: transform 0.35s ease;
+  transition: transform var(--ease-slow);
 }
 .pack-panel.open { transform: translateX(0); }
 
@@ -350,7 +898,7 @@ textarea { resize: vertical; }
 .pack-btn {
   padding: 0.6rem 0.5rem;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--sand-secondary);
   color: #000;
   font: inherit;
@@ -376,14 +924,19 @@ textarea { resize: vertical; }
 .pack-header h2 { font-size: 1.2rem; color: var(--sand-navy); }
 .pack-close {
   border: none; background: none; font-size: 1.6rem;
-  cursor: pointer; color: var(--sand-secondary); line-height: 1;
+  cursor: pointer; color: #6b7355; line-height: 1;
 }
-.pack-progress { font-size: 0.85rem; font-weight: 600; color: var(--sand-primary); margin: 0.4rem 0 1rem; }
+.pack-progress {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--sand-accent);
+  margin: 0.4rem 0 1rem;
+}
 
 .pack-category { margin-bottom: 1.2rem; }
 .pack-category h3 {
   font-size: 0.95rem;
-  color: var(--sand-secondary);
+  color: #6b7355;
   border-bottom: 2px solid var(--sand-light);
   padding-bottom: 0.3rem;
   margin-bottom: 0.5rem;
@@ -397,17 +950,64 @@ textarea { resize: vertical; }
   cursor: pointer;
 }
 .pack-item input { margin-top: 0.25rem; accent-color: var(--sand-primary); width: auto; }
+
+/* Tick-off state. NOTE: original rule was `.pack-item.checked label`,
+   which targets a nested <label>. If .pack-item IS the label (as the
+   markup suggests), that selector never matched. Both kept below —
+   delete whichever proves wrong. */
+.pack-item.checked { text-decoration: line-through; opacity: 0.65; }
 .pack-item.checked label { text-decoration: line-through; opacity: 0.65; }
 
 @media (max-width: 520px) {
   .pack-panel { width: 100vw; }
 }
 
-/* ---------- PRINT: only the checklist, with checked boxes visible ---------- */
+/* ============================================================
+   PRINT
+   Two modes:
+   1. Normal page print — strips chrome, keeps content readable.
+   2. Checklist-only print — opt in via body.print-checklist,
+      which script.js sets while the drawer is open.
+   Previously the checklist rule fired unconditionally, so Ctrl+P
+   on the homepage produced a blank sheet.
+   ============================================================ */
 @media print {
-  body > *:not(#packPanel) { display: none !important; }
-  #packOverlay { display: none !important; }
-  .pack-panel {
+  /* --- Mode 1: default page print --- */
+  .site-header,
+  .pack-trigger,
+  .carousel-controls,
+  .cruise-toggle,
+  .cruise-preferences,
+  .lodging-preference,
+  #quoteForm,
+  .btn {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .section { padding: 0; margin-bottom: 2rem; }
+  .cruise-card,
+  .hotel-air-card,
+  details {
+    box-shadow: none !important;
+    border: 1px solid #000;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .cruise-card:hover { transform: none; }
+  .cruise-carousel { display: block; }
+  .cruise-card { margin-bottom: 1.5rem; }
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75rem;
+  }
+
+  /* --- Mode 2: checklist only (body.print-checklist) --- */
+  body.print-checklist > *:not(#packPanel) { display: none !important; }
+  body.print-checklist #packOverlay { display: none !important; }
+  body.print-checklist .pack-panel {
     position: static;
     transform: none;
     width: auto;
@@ -416,18 +1016,29 @@ textarea { resize: vertical; }
     display: block;
     overflow: visible;
   }
-  .pack-toolbar, .pack-close { display: none !important; }
-  .pack-body { columns: 2; column-gap: 2rem; }  /* fits on one page */
-  .pack-category { break-inside: avoid; }
+  body.print-checklist .pack-toolbar,
+  body.print-checklist .pack-close { display: none !important; }
+  body.print-checklist .pack-body { columns: 2; column-gap: 2rem; }
+  body.print-checklist .pack-category { break-inside: avoid; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pack-panel { transition: none; }
-  .pack-overlay { transition: none; }
-}
-
-/* Reduced motion — respected by FF and all modern engines */
+/* ============================================================
+   REDUCED MOTION  (was duplicated — merged into one block)
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  * { transition-duration: 0.01ms !important; }
+  .pack-panel,
+  .pack-overlay,
+  .cruise-card,
+  .btn,
+  .segmented label {
+    transition: none;
+  }
+  .cruise-card:hover { transform: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
